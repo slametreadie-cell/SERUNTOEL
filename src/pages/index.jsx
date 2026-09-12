@@ -13,8 +13,11 @@ export default function Home() {
   }, [user, loading, router])
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <p className="text-gray-500">Memuat...</p>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)' }}>
+      <div className="flex items-center gap-3">
+        <span className="spinner" style={{ borderColor: 'rgba(13,148,136,.3)', borderTopColor: 'var(--primary)' }} />
+        <span className="text-muted">Memuat...</span>
+      </div>
     </div>
   )
 }

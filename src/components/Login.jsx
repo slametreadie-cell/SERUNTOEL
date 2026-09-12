@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from './AuthProvider'
 import { useRouter } from 'next/router'
 
@@ -10,91 +10,123 @@ export default function Login() {
   const { signIn } = useAuth()
   const router = useRouter()
 
+  useEffect(() => {
+    const saved = localStorage.getItem('seruntul-theme') || 'light'
+    document.documentElement.setAttribute('data-theme', saved)
+  }, [])
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
     setLoading(true)
 
     const { error } = await signIn(email, password)
-    
+
     if (error) {
-      setError(error.message)
+      setError(
+        error.message.includes('Invalid login')
+          ? 'Email atau password salah. Coba lagi.'
+          : error.message
+      )
     } else {
       router.push('/dashboard')
     }
-    
+
     setLoading(false)
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
-            🐟 Seruntul Advanced
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Business Management System
-          </p>
+    <div className="login-wrap">
+      <div className="login-card">
+        <div className="login-brand">
+          <div className="login-logo">🐟</div>
+          <h1>Seruntul</h1>
+          <p>Entrepreneur Business Suite</p>
         </div>
-        
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-              {error}
-            </div>
-          )}
-          
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="email@example.com"
-              />
-            </div>
-            
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="••••••••"
-              />
-            </div>
+
+        <form onSubmit={handleSubmit}>
+          {error && <div className="alert alert-danger">{error}</div>}
+
+          <div className="form-group">
+            <label className="form-label" htmlFor="email">Email</label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              autoComplete="username"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="form-control"
+              placeholder="nama@email.com"
+            />
           </div>
 
-          <div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-            >
-              {loading ? 'Signing in...' : 'Sign In'}
-            </button>
+          <div className="form-group">
+            <label className="form-label" htmlFor="password">Password</label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              autoComplete="current-password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="form-control"
+              placeholder="••••••••"
+            />
           </div>
-          
-          <div className="text-sm text-center text-gray-600">
-            <p>Default credentials:</p>
-            <p className="font-mono text-xs mt-1">owner@seruntul.com / password123</p>
-          </div>
+
+          <button type="submit" disabled={loading} className="btn btn-primary btn-block">
+            {loading ? <><span className="spinner" /> Masuk...</> : 'Masuk'}
+          </button>
         </form>
+
+        <div className="login-footer">
+          <p>Belum punya akun? Hubungi admin untuk pendaftaran.</p>
+        </div>
       </div>
+
+      <style jsx>{`
+        .login-wrap {
+          min-height: 100vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 24px;
+          background:
+            radial-gradient(circle at 15% 20%, rgba(13,148,136,.12), transparent 40%),
+            radial-gradient(circle at 85% 80%, rgba(217,119,6,.10), transparent 40%),
+            var(--bg);
+        }
+        .login-card {
+          width: 100%;
+          max-width: 400px;
+          background: var(--card);
+          border: 1px solid var(--border);
+          border-radius: 20px;
+          padding: 40px 32px;
+          box-shadow: var(--shadow-xl);
+        }
+        .login-brand { text-align: center; margin-bottom: 28px; }
+        .login-logo {
+          width: 64px; height: 64px; margin: 0 auto 16px;
+          background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+          border-radius: 18px;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 32px;
+          box-shadow: 0 8px 24px rgba(13,148,136,.35);
+        }
+        .login-brand h1 {
+          font-family: 'Plus Jakarta Sans', sans-serif;
+          font-size: 26px; font-weight: 800; letter-spacing: -.5px;
+        }
+        .login-brand p { color: var(--muted); font-size: 13px; margin-top: 2px; }
+        .login-footer { text-align: center; margin-top: 24px; color: var(--muted); font-size: 12.5px; }
+        @media (min-width: 640px) {
+          .login-card { padding: 48px 40px; }
+        }
+      `}</style>
     </div>
   )
 }

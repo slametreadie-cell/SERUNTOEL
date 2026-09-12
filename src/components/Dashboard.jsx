@@ -2,14 +2,15 @@ import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '../utils/supabaseClient'
 import { useAuth } from './AuthProvider'
+import AppLayout from './AppLayout'
 
-const menuItems = [
-  { emoji: '🏪', title: 'POS System', description: 'Point of Sales transactions', href: '/pos' },
-  { emoji: '📦', title: 'Inventory', description: 'Stock management', href: '/inventory' },
-  { emoji: '💰', title: 'Finance', description: 'Cashflow & reports', href: '/finance' },
-  { emoji: '👥', title: 'Customers', description: 'Customer management', href: '/customers' },
-  { emoji: '📊', title: 'Analytics', description: 'Reports & insights', href: '/analytics' },
-  { emoji: '⚙️', title: 'Settings', description: 'System configuration', href: '/settings' },
+const QUICK_ACCESS = [
+  { emoji: '🏪', title: 'POS Kasir', desc: 'Transaksi penjualan', href: '/pos', color: 'linear-gradient(135deg,#0D9488,#0F766E)' },
+  { emoji: '📦', title: 'Inventory', desc: 'Kelola stok bahan & produk', href: '/inventory', color: 'linear-gradient(135deg,#3B82F6,#2563EB)' },
+  { emoji: '💰', title: 'Cashflow', desc: 'Arus kas masuk & keluar', href: '/finance', color: 'linear-gradient(135deg,#F59E0B,#D97706)' },
+  { emoji: '👥', title: 'Pelanggan', desc: 'Database & loyalitas', href: '/customers', color: 'linear-gradient(135deg,#8B5CF6,#7C3AED)' },
+  { emoji: '📈', title: 'Laporan', desc: 'Laba rugi & analisis', href: '/laporan', color: 'linear-gradient(135deg,#10B981,#059669)' },
+  { emoji: '🧾', title: 'Produk & HPP', desc: 'Kalkulasi harga pokok', href: '/produk-hpp', color: 'linear-gradient(135deg,#EF4444,#DC2626)' },
 ]
 
 const formatRupiah = (value) =>
@@ -19,11 +20,13 @@ export default function Dashboard() {
   const { user, signOut } = useAuth()
   const [stats, setStats] = useState({ omset: 0, transaksi: 0, stokKritis: 0, pelanggan: 0 })
   const [statsError, setStatsError] = useState('')
+  const [loading, setLoading] = useState(true)
   const [profile, setProfile] = useState(null)
 
   const fetchStats = useCallback(async () => {
     if (!user) return
     setStatsError('')
+    setLoading(true)
     try {
       const since = new Date()
       since.setHours(0, 0, 0, 0)
@@ -48,13 +51,11 @@ export default function Dashboard() {
         stokKritis: products.filter((p) => Number(p.stok_produk || 0) <= 5).length,
         pelanggan: customersRes.count || 0,
       })
-      if (profileRes.error) {
-        setProfile(null)
-      } else {
-        setProfile(profileRes.data)
-      }
+      setProfile(profileRes.error ? null : profileRes.data)
     } catch (err) {
       setStatsError(err.message || 'Gagal memuat data dari Supabase')
+    } finally {
+      setLoading(false)
     }
   }, [user])
 
@@ -64,94 +65,96 @@ export default function Dashboard() {
 
   const nama = profile?.nama || user?.email?.split('@')[0] || 'User'
   const role = profile?.role || 'user'
+  const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">🐟 Seruntul Advanced</h1>
-            <p className="text-sm text-gray-600">Business Dashboard</p>
-          </div>
-          <div className="flex items-center space-x-4">
-            <div className="text-sm text-right">
-              <p className="font-medium">{user?.email}</p>
-              <p className="text-gray-500 capitalize">{role}</p>
-            </div>
-            <button
-              onClick={signOut}
-              className="px-4 py-2 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200"
-            >
-              Sign Out
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold">Welcome back, {nama}!</h2>
-            <button
-              onClick={fetchStats}
-              className="text-sm px-3 py-1.5 border border-gray-300 rounded hover:bg-gray-100"
-            >
-              🔄 Refresh
-            </button>
-          </div>
-
-          {statsError && (
-            <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-              {statsError}
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-white p-6 rounded-lg shadow">
-              <h3 className="font-medium text-gray-900">Penjualan Hari Ini</h3>
-              <p className="text-2xl font-bold text-green-600 mt-2">{formatRupiah(stats.omset)}</p>
-              <p className="text-sm text-gray-500">{stats.transaksi} transaksi</p>
-            </div>
-            <div className="bg-white p-6 rounded-lg shadow">
-              <h3 className="font-medium text-gray-900">Peringatan Stok</h3>
-              <p className="text-2xl font-bold text-red-600 mt-2">{stats.stokKritis} item</p>
-              <p className="text-sm text-gray-500">Stok ≤ 5 unit</p>
-            </div>
-            <div className="bg-white p-6 rounded-lg shadow">
-              <h3 className="font-medium text-gray-900">Pelanggan Terdaftar</h3>
-              <p className="text-2xl font-bold text-blue-600 mt-2">{stats.pelanggan}</p>
-              <p className="text-sm text-gray-500">Total di database</p>
-            </div>
-          </div>
-        </div>
-
+    <AppLayout title="Dashboard" subtitle={today}>
+      <div className="flex items-center justify-between mb-3">
         <div>
-          <h2 className="text-xl font-semibold mb-4">Quick Access</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {menuItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="block p-6 bg-white rounded-lg shadow hover:shadow-md transition-shadow"
-              >
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 mb-4">
-                  <span className="text-xl">{item.emoji}</span>
-                </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">{item.title}</h3>
-                <p className="text-gray-600">{item.description}</p>
-              </Link>
-            ))}
+          <div className="page-title">Selamat datang, {nama}! 👋</div>
+          <div className="page-subtitle">
+            Ringkasan bisnis Anda hari ini · <span className="badge badge-success capitalize">{role}</span>
           </div>
         </div>
+        <button className="btn btn-outline" onClick={fetchStats}>🔄 Refresh</button>
+      </div>
 
-        <div className="mt-8 bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-medium mb-4">Recent Activity</h3>
-          <div className="text-center text-gray-500 py-8">
-            <p>Belum ada aktivitas terbaru</p>
-            <p className="text-sm mt-2">Mulai dengan membuat transaksi pertama Anda!</p>
-          </div>
+      {statsError && <div className="alert alert-danger">⚠️ {statsError}</div>}
+
+      <div className="metrics-grid">
+        <div className="metric-card">
+          <div className="metric-label">Penjualan Hari Ini</div>
+          <div className="metric-value text-primary">{loading ? '...' : formatRupiah(stats.omset)}</div>
+          <div className="text-sm text-muted mt-2">{stats.transaksi} transaksi</div>
         </div>
-      </main>
-    </div>
+        <div className="metric-card">
+          <div className="metric-label">Peringatan Stok</div>
+          <div className="metric-value text-danger">{loading ? '...' : stats.stokKritis}</div>
+          <div className="text-sm text-muted mt-2">Produk ≤ 5 unit</div>
+        </div>
+        <div className="metric-card">
+          <div className="metric-label">Pelanggan</div>
+          <div className="metric-value text-primary">{loading ? '...' : stats.pelanggan}</div>
+          <div className="text-sm text-muted mt-2">Total terdaftar</div>
+        </div>
+        <div className="metric-card">
+          <div className="metric-label">Produk Aktif</div>
+          <div className="metric-value text-primary">—</div>
+          <div className="text-sm text-muted mt-2">Katalog produk</div>
+        </div>
+      </div>
+
+      <div className="card">
+        <div className="card-header">
+          <div className="card-title"><span className="nav-icon">⚡</span> Akses Cepat</div>
+        </div>
+        <div className="grid-3">
+          {QUICK_ACCESS.map((item) => (
+            <Link key={item.href} href={item.href} className="quick-card">
+              <div className="quick-icon" style={{ background: item.color }}>{item.emoji}</div>
+              <div>
+                <div className="quick-title">{item.title}</div>
+                <div className="text-sm text-muted">{item.desc}</div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      <div className="card">
+        <div className="card-header">
+          <div className="card-title"><span className="nav-icon">🕒</span> Aktivitas Terbaru</div>
+        </div>
+        <div className="empty-state">
+          <div className="nav-icon">📭</div>
+          <h3>Belum ada aktivitas</h3>
+          <p className="text-sm">Mulai dengan membuat transaksi pertama Anda!</p>
+        </div>
+      </div>
+
+      <style jsx>{`
+        .quick-card {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          padding: 16px;
+          border: 1px solid var(--border);
+          border-radius: var(--radius-sm);
+          transition: all .2s;
+          cursor: pointer;
+        }
+        .quick-card:hover {
+          transform: translateY(-3px);
+          box-shadow: var(--shadow-hover);
+          border-color: var(--primary-light);
+        }
+        .quick-icon {
+          width: 44px; height: 44px; border-radius: 12px;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 22px; color: #fff; flex-shrink: 0;
+        }
+        .quick-title { font-weight: 700; font-size: var(--fs-base); }
+      `}</style>
+    </AppLayout>
   )
 }
