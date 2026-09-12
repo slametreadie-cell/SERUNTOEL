@@ -31,3 +31,7 @@ Thumbs.db
 
 # freebuff
 .freebuff
+
+# migration scripts (contain DB password)
+run_migration.js
+verify_tables.js
