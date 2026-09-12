@@ -48,10 +48,9 @@ export function nilaiPoin(poin, nilaiPerPoin) {
 
 /** Tier otomatis berdasarkan total belanja member. */
 export function tierDari(totalBelanja, tiers = TIER_DEFAULT) {
-  const sorted = [...tiers].sort((a, b) => (b.target_bulanan || 0) - (a.target_belanja ?? a.target_bulanan || 0))
   let hasil = 'bronze'
   ORDER_TIER.forEach((t) => {
-    const cfg = sorted.find((x) => x.tier === t)
+    const cfg = tiers.find((x) => x.tier === t)
     if (cfg && (Number(totalBelanja) || 0) >= (Number(cfg.target_bulanan) || 0)) hasil = t
   })
   return hasil
