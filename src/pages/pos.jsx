@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../utils/supabaseClient'
 import { useAuth } from '../components/AuthProvider'
 import AppLayout from '../components/AppLayout'
+import { logAudit } from '../utils/audit'
 
 const formatRupiah = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
@@ -69,7 +70,7 @@ export default function POS() {
         alert(`Stok ${p.nama_produk} habis!`)
         return prev
       }
-      return [...prev, { id: p.id, nama: p.nama_produk, harga: p.harga_jual, qty: 1, stok: p.stok_produk, foto: p.foto_url }]
+      return [...prev, { id: p.id, nama: p.nama_produk, harga: p.harga_jual, qty: 1, stok: p.stok_produk, foto: p.foto_url, hpp: p.hpp_per_unit }]
     })
   }
 
@@ -114,8 +115,43 @@ export default function POS() {
         nama_produk: i.nama,
         qty: i.qty,
         harga_satuan: i.harga,
+        hpp_satuan: Number(i.hpp) || 0,
         subtotal: i.harga * i.qty,
       }))
+
+      // 0. Catat/perbarui pelanggan (kalau namanya diisi)
+      let customerId = null
+      const namaCustomer = (customer || '').trim()
+      if (namaCustomer) {
+        try {
+          const { data: existing } = await supabase
+            .from('customers')
+            .select('id, total_transaksi, total_belanja')
+            .ilike('nama', namaCustomer)
+            .limit(1)
+            .maybeSingle()
+
+          if (existing) {
+            await supabase.from('customers').update({
+              total_transaksi: (existing.total_transaksi || 0) + 1,
+              total_belanja: Number(existing.total_belanja || 0) + subtotal,
+              last_order: new Date().toISOString(),
+            }).eq('id', existing.id)
+            customerId = existing.id
+          } else {
+            const { data: baru } = await supabase.from('customers').insert({
+              nama: namaCustomer,
+              channel: 'offline',
+              total_transaksi: 1,
+              total_belanja: subtotal,
+              last_order: new Date().toISOString(),
+            }).select('id').single()
+            customerId = baru?.id || null
+          }
+        } catch (e) {
+          customerId = null // jangan gagalkan transaksi hanya karena data pelanggan
+        }
+      }
 
       // 1. Insert transaksi
       const { data: trx, error: trxErr } = await supabase
@@ -126,7 +162,8 @@ export default function POS() {
           metode_pembayaran: metode,
           nominal_bayar: metode === 'cash' ? Number(nominalBayar) || 0 : subtotal,
           kembalian: metode === 'cash' ? kembalian : 0,
-          customer: customer || null,
+          customer: namaCustomer || null,
+          customer_id: customerId,
           user_id: user?.id,
         })
         .select('id')
@@ -146,6 +183,13 @@ export default function POS() {
         const stokBaru = Math.max(0, (prod?.stok_produk || 0) - i.qty)
         await supabase.from('products').update({ stok_produk: stokBaru }).eq('id', i.id)
       }
+
+      logAudit({
+        aksi: 'transaksi',
+        user,
+        sheetTarget: 'transactions',
+        detail: { id_transaksi: idTransaksi, total: subtotal, metode, items: cart.length, customer: namaCustomer || null },
+      })
 
       setSukses({ id: idTransaksi, total: subtotal, kembalian, metode })
       resetCart()
