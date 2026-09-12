@@ -191,8 +191,12 @@ export default function ProdukHPP() {
                     <td>{Math.round(p.margin || 0)}%</td>
                     <td className={p.stok_produk <= 5 ? 'text-danger font-bold' : ''}>{p.stok_produk}</td>
                     <td className="text-right">
-                      <button className="btn btn-sm btn-danger" title="Hapus produk"
-                        onClick={(e) => hapusProduk(p, e)}>✕</button>
+                      <div className="flex gap-1 justify-end">
+                        <button className="btn btn-sm btn-outline" title="Ubah produk"
+                          onClick={(e) => { e.stopPropagation(); router.push(`/produk-hpp/${p.id}`) }}>✏️</button>
+                        <button className="btn btn-sm btn-danger" title="Hapus produk"
+                          onClick={(e) => hapusProduk(p, e)}>✕</button>
+                      </div>
                     </td>
                   </tr>
                 ))}

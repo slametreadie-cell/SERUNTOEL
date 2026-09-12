@@ -113,6 +113,15 @@ export default function TargetBudget() {
     finally { setSaving(false); setTimeout(() => setMsg(''), 3000) }
   }
 
+  const hapusTarget = async (r) => {
+    if (!confirm(`Hapus target ${bulanLabel(r.bulan)}?`)) return
+    await supabase.from('target_budgets').delete().eq('id', r.id)
+    logAudit({ aksi: 'hapus_target', user, sheetTarget: 'target_budgets', detail: { bulan: r.bulan } })
+    setMsg('✅ Target dihapus')
+    fetchData()
+    setTimeout(() => setMsg(''), 3000)
+  }
+
   const Progres = ({ label, nilai, target, persen, warna }) => (
     <div className="pg-row">
       <div className="pg-info">
@@ -229,7 +238,10 @@ export default function TargetBudget() {
                           <td className="text-right">{rp(r.budget_op)}</td>
                           <td className="text-right">{rp(r.budget_mk)}</td>
                           <td className="text-right">
-                            <button className="btn btn-sm btn-outline" onClick={() => setBulan((r.bulan||'').slice(0,10))}>Buka</button>
+                            <div className="flex gap-1 justify-end">
+                              <button className="btn btn-sm btn-outline" onClick={() => setBulan((r.bulan||'').slice(0,10))}>Buka</button>
+                              <button className="btn btn-sm btn-danger" onClick={() => hapusTarget(r)}>✕</button>
+                            </div>
                           </td>
                         </tr>
                       )

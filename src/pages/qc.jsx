@@ -34,6 +34,7 @@ export default function QC() {
   const [error, setError] = useState('')
   const [msg, setMsg] = useState('')
   const [detail, setDetail] = useState(null)
+  const [editId, setEditId] = useState(null)
 
   const [form, setForm] = useState({ tanggal: hariIni(), jenis: JENIS[0], petugas: '' })
   const [items, setItems] = useState(ITEM_DEFAULT.map((label) => ({ label, hasil: 'ok', catatan: '' })))
@@ -74,27 +75,42 @@ export default function QC() {
       const itemsObj = {}
       items.forEach((it, i) => { itemsObj[`item_${i + 1}`] = { label: it.label, hasil: it.hasil, catatan: it.catatan } })
 
-      const { error } = await supabase.from('qc_checklists').insert({
+      const payload = {
         tanggal: form.tanggal || hariIni(),
         petugas: form.petugas || user?.email || null,
         jenis: form.jenis,
         items_json: { items: itemsObj, ringkasan: ringkas },
         status: ringkas.no === 0 ? 'lulus' : 'perlu_perbaikan',
         catatan: catatanAkhir || null,
-      })
+      }
+      const { error } = editId
+        ? await supabase.from('qc_checklists').update(payload).eq('id', editId)
+        : await supabase.from('qc_checklists').insert(payload)
       if (error) throw error
 
       logAudit({ aksi: 'qc_checklist', user, sheetTarget: 'qc_checklists',
         detail: { jenis: form.jenis, ok: ringkas.ok, gagal: ringkas.no, persen: ringkas.persen } })
 
-      setMsg(ringkas.no === 0
-        ? `✅ QC LULUS (${ringkas.persen}% sesuai)`
-        : `⚠️ Tersimpan — ${ringkas.no} item perlu perbaikan`)
+      setMsg(editId
+        ? '✅ Pemeriksaan diperbarui'
+        : ringkas.no === 0
+          ? `✅ QC LULUS (${ringkas.persen}% sesuai)`
+          : `⚠️ Tersimpan — ${ringkas.no} item perlu perbaikan`)
+      setEditId(null)
       setItems(ITEM_DEFAULT.map((label) => ({ label, hasil: 'ok', catatan: '' })))
       setCatatanAkhir('')
       fetchData()
     } catch (e) { setError(e.message) }
     finally { setSaving(false); setTimeout(() => setMsg(''), 5000) }
+  }
+
+  const mulaiEdit = (row) => {
+    const list = ambilItems(row)
+    setEditId(row.id)
+    setForm({ tanggal: (row.tanggal || '').slice(0, 10), jenis: row.jenis || JENIS[0], petugas: row.petugas || '' })
+    setItems(list.length ? list.map((it) => ({ label: it.label, hasil: it.hasil || 'ok', catatan: it.catatan || '' })) : [])
+    setCatatanAkhir(row.catatan || '')
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const hapus = async (row) => {
@@ -118,7 +134,8 @@ export default function QC() {
 
       {/* Form */}
       <div className="card">
-        <div className="card-header"><div className="card-title"><span className="nav-icon">✅</span> Pemeriksaan Baru</div></div>
+        <div className="card-header"><div className="card-title"><span className="nav-icon">✅</span> {editId ? 'Ubah Pemeriksaan' : 'Pemeriksaan Baru'}</div>
+            {editId && <button className="btn btn-sm btn-outline" onClick={() => { setEditId(null); setItems(ITEM_DEFAULT.map((label) => ({ label, hasil: 'ok', catatan: '' }))); setCatatanAkhir('') }}>Batal Edit</button>}</div>
 
         <div className="form-row">
           <div className="form-group">
@@ -185,7 +202,7 @@ export default function QC() {
 
         <div className="flex justify-end">
           <button className="btn btn-primary" onClick={simpan} disabled={saving}>
-            {saving ? <><span className="spinner" /> Menyimpan...</> : '💾 Simpan Pemeriksaan'}
+            {saving ? <><span className="spinner" /> Menyimpan...</> : editId ? '💾 Perbarui' : '💾 Simpan Pemeriksaan'}
           </button>
         </div>
       </div>
@@ -232,6 +249,7 @@ export default function QC() {
                             <button className="btn btn-sm btn-outline" onClick={() => setDetail(detail?.id === row.id ? null : row)}>
                               {detail?.id === row.id ? 'Tutup' : 'Lihat'}
                             </button>
+                            <button className="btn btn-sm btn-outline" onClick={() => mulaiEdit(row)}>✏️</button>
                             <button className="btn btn-sm btn-danger" onClick={() => hapus(row)}>✕</button>
                           </div>
                         </td>
