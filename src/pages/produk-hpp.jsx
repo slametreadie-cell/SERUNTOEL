@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { supabase } from '../../utils/supabaseClient'
-import { useAuth } from '../../components/AuthProvider'
-import AppLayout from '../../components/AppLayout'
+import { supabase } from '../utils/supabaseClient'
+import { useAuth } from '../components/AuthProvider'
+import AppLayout from '../components/AppLayout'
 
 const formatRupiah = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
