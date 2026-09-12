@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { supabase } from '../utils/supabaseClient'
-import { useAuth } from '../components/AuthProvider'
-import AppLayout from '../components/AppLayout'
-import { logAudit } from '../utils/audit'
+import { supabase } from '../../utils/supabaseClient'
+import { useAuth } from '../../components/AuthProvider'
+import AppLayout from '../../components/AppLayout'
+import { logAudit } from '../../utils/audit'
 
 const hariIni = () => new Date().toISOString().slice(0, 10)
 const tglID = (v) => v ? new Date(v).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'

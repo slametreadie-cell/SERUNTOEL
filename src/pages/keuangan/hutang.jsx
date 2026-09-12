@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { supabase } from '../utils/supabaseClient'
-import { useAuth } from '../components/AuthProvider'
-import AppLayout from '../components/AppLayout'
-import { logAudit } from '../utils/audit'
+import { supabase } from '../../utils/supabaseClient'
+import { useAuth } from '../../components/AuthProvider'
+import AppLayout from '../../components/AppLayout'
+import { logAudit } from '../../utils/audit'
 
 const formatRupiah = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
