@@ -35,3 +35,5 @@ Thumbs.db
 # migration scripts (contain DB password)
 run_migration.js
 verify_tables.js
+
+create_bucket.js
