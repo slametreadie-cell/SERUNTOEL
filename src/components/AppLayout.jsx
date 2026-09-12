@@ -24,7 +24,7 @@ const NAV_GROUPS = [
   {
     label: 'Keuangan',
     items: [
-      { emoji: '💰', title: 'Cashflow', href: '/finance' },
+      { emoji: '💰', title: 'Cashflow', href: '/cashflow' },
       { emoji: '📈', title: 'Laporan', href: '/laporan' },
       { emoji: '🎯', title: 'Forecast & Simulasi', href: '/forecast' },
     ],
