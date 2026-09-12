@@ -45,7 +45,21 @@ async function bolehKelola(email) {
   if (!r.ok) return false
   const rows = await r.json()
   const role = rows?.[0]?.role
-  return role === 'owner' || role === 'admin'
+  if (role === 'owner' || role === 'admin') return true
+
+  // BOOTSTRAP: kalau tabel users masih KOSONG (belum ada owner sama sekali),
+  // izinkan pengguna login pertama mengelola user — mencegah lockout total.
+  if (!rows || rows.length === 0) {
+    const cekOwner = await fetch(
+      `${SUPABASE_URL}/rest/v1/users?select=id&role=in.(owner,admin)&limit=1`,
+      { headers: svcHeaders() }
+    )
+    if (cekOwner.ok) {
+      const ada = await cekOwner.json()
+      if (!ada || ada.length === 0) return true   // belum ada owner -> bootstrap
+    }
+  }
+  return false
 }
 
 export default async function handler(req, res) {
