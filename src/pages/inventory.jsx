@@ -11,6 +11,22 @@ const formatRupiah = (v) =>
 export default function Inventory() {
   const { user } = useAuth()
 
+  const simpanEditBahan = async () => {
+    if (!editBahan) return
+    if (!editBahan.nama_bahan?.trim()) { alert('Nama bahan tidak boleh kosong'); return }
+    await supabase.from('ingredients').update({
+      nama_bahan: editBahan.nama_bahan.trim(),
+      satuan: editBahan.satuan || 'pcs',
+      stok_minimum: Number(editBahan.stok_minimum) || 0,
+      status: editBahan.status || 'aktif',
+    }).eq('id', editBahan.id)
+    logAudit({ aksi: 'ubah_bahan', user, sheetTarget: 'ingredients', detail: { nama: editBahan.nama_bahan } })
+    setEditBahan(null)
+    fetchData()
+  }
+
+  const [editBahan, setEditBahan] = useState(null)
+
   const hapusBahan = async (b) => {
     if (!confirm(`Hapus bahan "${b.nama_bahan}"?\n\nRiwayat harga & pembeliannya ikut terhapus.`)) return
     const { error } = await supabase.from('ingredients').delete().eq('id', b.id)
@@ -113,6 +129,41 @@ export default function Inventory() {
 
       {error && <div className="alert alert-danger">⚠️ {error}</div>}
 
+      {editBahan && (
+        <div className="card" style={{ border: '2px solid var(--primary)' }}>
+          <div className="card-header">
+            <div className="card-title"><span className="nav-icon">✏️</span> Ubah Bahan — {editBahan.nama_bahan}</div>
+            <button className="btn btn-sm btn-outline" onClick={() => setEditBahan(null)}>✕</button>
+          </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label className="form-label">Nama Bahan</label>
+              <input className="form-control" value={editBahan.nama_bahan}
+                onChange={(e) => setEditBahan({ ...editBahan, nama_bahan: e.target.value })} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Satuan</label>
+              <select className="form-control" value={editBahan.satuan}
+                onChange={(e) => setEditBahan({ ...editBahan, satuan: e.target.value })}>
+                {['kg','gram','liter','ml','pcs','pack','ikat','lusin','box'].map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Stok Minimum</label>
+              <input className="form-control" type="number" value={editBahan.stok_minimum}
+                onChange={(e) => setEditBahan({ ...editBahan, stok_minimum: e.target.value })} />
+            </div>
+          </div>
+          <p className="text-xs text-muted">
+            Untuk mengubah <b>jumlah stok</b>, gunakan menu <b>Stok &amp; Opname</b> agar selisihnya tercatat.
+          </p>
+          <div className="flex gap-2 justify-end">
+            <button className="btn btn-outline" onClick={() => setEditBahan(null)}>Batal</button>
+            <button className="btn btn-primary" onClick={simpanEditBahan}>💾 Simpan</button>
+          </div>
+        </div>
+      )}
+
       {loading ? (
         <div className="card"><p className="text-muted text-center">Memuat...</p></div>
       ) : (
@@ -151,7 +202,11 @@ export default function Inventory() {
                               </span>
                             </td>
                             <td className="text-right">
-                              <button className="btn btn-sm btn-danger" onClick={() => hapusBahan(b)}>✕</button>
+                              <div className="flex gap-1 justify-end">
+                                <button className="btn btn-sm btn-outline"
+                                  onClick={() => setEditBahan({ id: b.id, nama_bahan: b.nama_bahan, satuan: b.satuan || 'pcs', stok_minimum: b.stok_minimum || 0, status: b.status || 'aktif' })}>✏️</button>
+                                <button className="btn btn-sm btn-danger" onClick={() => hapusBahan(b)}>✕</button>
+                              </div>
                             </td>
                           </tr>
                         )

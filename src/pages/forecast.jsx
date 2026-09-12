@@ -36,6 +36,12 @@ export default function Forecast() {
 
   useEffect(() => { fetchData() }, [fetchData])
 
+  const hapusSimulasi = async (r) => {
+    if (!confirm('Hapus skenario simulasi ini?')) return
+    await supabase.from('simulation_scenarios').delete().eq('id', r.id)
+    fetchData()
+  }
+
   const hitung = () => {
     const p = produk.find((x) => x.id === produkId)
     if (!p) { setError('Pilih produk dulu'); return }
@@ -185,7 +191,7 @@ export default function Forecast() {
           <div className="table-wrap">
             <table className="table">
               <thead>
-                <tr><th>Produk</th><th>Kenaikan Bahan</th><th>Penurunan Jual</th><th>HPP Baru</th><th>Harga Baru</th><th>Laba/Unit</th></tr>
+                <tr><th>Produk</th><th>Kenaikan Bahan</th><th>Penurunan Jual</th><th>HPP Baru</th><th>Harga Baru</th><th>Laba/Unit</th><th></th></tr>
               </thead>
               <tbody>
                 {riwayat.map((r) => (
@@ -196,6 +202,9 @@ export default function Forecast() {
                     <td>{formatRupiah(r.hpp_baru)}</td>
                     <td>{formatRupiah(r.harga_jual_baru)}</td>
                     <td className={r.laba_unit >= 0 ? 'text-success font-bold' : 'text-danger font-bold'}>{formatRupiah(r.laba_unit)}</td>
+                    <td className="text-right">
+                      <button className="btn btn-sm btn-danger" onClick={() => hapusSimulasi(r)}>✕</button>
+                    </td>
                   </tr>
                 ))}
               </tbody>

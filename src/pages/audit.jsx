@@ -27,6 +27,20 @@ export default function Audit() {
   const [search, setSearch] = useState('')
   const [aksiFilter, setAksiFilter] = useState('')
 
+  const hapusLog = async (d) => {
+    if (!confirm('Hapus catatan aktivitas ini?')) return
+    await supabase.from('audit_logs').delete().eq('id', d.id)
+    fetchData()
+  }
+
+  const bersihkanLog = async () => {
+    if (!confirm('Hapus SEMUA log lebih dari 30 hari?\n\nTindakan ini tidak bisa dibatalkan.')) return
+    const batas = new Date(Date.now() - 30 * 86400000).toISOString()
+    await supabase.from('audit_logs').delete().lt('tanggal', batas)
+    alert('✅ Log lama dibersihkan')
+    fetchData()
+  }
+
   const fetchData = useCallback(async () => {
     setLoading(true); setError('')
     const { data, error } = await supabase
@@ -64,7 +78,10 @@ export default function Audit() {
               {aksiList.map((a) => <option key={a} value={a}>{a}</option>)}
             </select>
           </div>
-          <button className="btn btn-outline" onClick={fetchData}>🔄 Muat Ulang</button>
+          <div className="flex gap-2">
+            <button className="btn btn-outline" onClick={fetchData}>🔄 Muat Ulang</button>
+            <button className="btn btn-outline" onClick={bersihkanLog}>🧹 Bersihkan &gt;30 hari</button>
+          </div>
         </div>
       </div>
 
@@ -88,7 +105,7 @@ export default function Audit() {
           <div className="table-wrap">
             <table className="table">
               <thead>
-                <tr><th>Waktu</th><th>Aksi</th><th>Pengguna</th><th>Detail</th></tr>
+                <tr><th>Waktu</th><th>Aksi</th><th>Pengguna</th><th>Detail</th><th></th></tr>
               </thead>
               <tbody>
                 {filtered.map((d) => (
@@ -100,6 +117,9 @@ export default function Audit() {
                       {d.detail_json && Object.keys(d.detail_json).length
                         ? JSON.stringify(d.detail_json).slice(0, 160)
                         : '—'}
+                    </td>
+                    <td className="text-right">
+                      <button className="btn btn-sm btn-danger" onClick={() => hapusLog(d)}>✕</button>
                     </td>
                   </tr>
                 ))}
