@@ -1,8 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import Link from 'next/link'
 import { supabase } from '../utils/supabaseClient'
 import { useAuth } from '../components/AuthProvider'
 import AppLayout from '../components/AppLayout'
 import { logAudit } from '../utils/audit'
+import { cetakStruk } from '../utils/struk'
+import {
+  parseLoyaltyConfig, TIER_DEFAULT, TIER_EMOJI,
+  hitungPoin, nilaiPoin, tierDari,
+} from '../utils/loyalty'
 
 const formatRupiah = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
@@ -22,26 +28,61 @@ export default function POS() {
   const [search, setSearch] = useState('')
   const [kategori, setKategori] = useState('')
 
+  // Master data
+  const [loyalty, setLoyalty] = useState(parseLoyaltyConfig([]))
+  const [tiers, setTiers] = useState(TIER_DEFAULT)
+  const [diskonReseller, setDiskonReseller] = useState(10)
+  const [toko, setToko] = useState({})
+
   // Keranjang
-  const [cart, setCart] = useState([]) // [{id, nama, harga, qty, stok, foto}]
+  const [cart, setCart] = useState([])
   const [metode, setMetode] = useState('cash')
   const [nominalBayar, setNominalBayar] = useState('')
   const [customer, setCustomer] = useState('')
+  const [channel, setChannel] = useState('offline')
   const [saving, setSaving] = useState(false)
   const [sukses, setSukses] = useState(null)
 
+  // Diskon manual
+  const [diskonMode, setDiskonMode] = useState('none')
+  const [diskonInput, setDiskonInput] = useState('')
+
+  // Voucher
+  const [voucherInput, setVoucherInput] = useState('')
+  const [voucher, setVoucher] = useState(null)
+  const [voucherMsg, setVoucherMsg] = useState('')
+  const [cekPod, setCekPod] = useState(false)
+
+  // Member / loyalitas
+  const [memberQuery, setMemberQuery] = useState('')
+  const [member, setMember] = useState(null)
+  const [memberMsg, setMemberMsg] = useState('')
+  const [poinPakai, setPoinPakai] = useState('')
+
   const fetchProduk = useCallback(async () => {
     setLoading(true)
-    const { data, error } = await supabase
-      .from('products')
-      .select('*')
-      .order('nama_produk')
+    const { data, error } = await supabase.from('products').select('*').order('nama_produk')
     if (error) setError(error.message)
     else setProduk(data || [])
     setLoading(false)
   }, [])
 
-  useEffect(() => { fetchProduk() }, [fetchProduk])
+  const fetchMaster = useCallback(async () => {
+    const [loy, tier, conf] = await Promise.all([
+      supabase.from('loyalty_config').select('*'),
+      supabase.from('tier_config').select('*'),
+      supabase.from('configuration').select('key, value'),
+    ])
+    setLoyalty(parseLoyaltyConfig(loy.data || []))
+    if (tier.data && tier.data.length) setTiers(tier.data)
+    const cm = {}
+    ;(conf.data || []).forEach((c) => { cm[c.key] = c.value })
+    setToko(cm)
+    const dr = Number(cm.diskon_reseller)
+    setDiskonReseller(Number.isFinite(dr) && dr > 0 ? dr : 10)
+  }, [])
+
+  useEffect(() => { fetchProduk(); fetchMaster() }, [fetchProduk, fetchMaster])
 
   const kategoriList = useMemo(() => {
     const s = new Set(produk.map((p) => p.kategori).filter(Boolean))
@@ -59,7 +100,6 @@ export default function POS() {
     setCart((prev) => {
       const existing = prev.find((i) => i.id === p.id)
       if (existing) {
-        // cek stok
         if (existing.qty + 1 > (p.stok_produk || 0)) {
           alert(`Stok ${p.nama_produk} tidak cukup (sisa ${p.stok_produk})`)
           return prev
@@ -70,7 +110,10 @@ export default function POS() {
         alert(`Stok ${p.nama_produk} habis!`)
         return prev
       }
-      return [...prev, { id: p.id, nama: p.nama_produk, harga: p.harga_jual, qty: 1, stok: p.stok_produk, foto: p.foto_url, hpp: p.hpp_per_unit }]
+      return [...prev, {
+        id: p.id, nama: p.nama_produk, harga: Number(p.harga_jual) || 0,
+        qty: 1, stok: p.stok_produk, foto: p.foto_url, hpp: Number(p.hpp_per_unit) || 0,
+      }]
     })
   }
 
@@ -88,22 +131,120 @@ export default function POS() {
 
   const removeItem = (id) => setCart((prev) => prev.filter((i) => i.id !== id))
 
-  const subtotal = cart.reduce((s, i) => s + i.harga * i.qty, 0)
-  const kembalian = Math.max(0, (Number(nominalBayar) || 0) - subtotal)
-
   const resetCart = () => {
     setCart([])
     setNominalBayar('')
     setCustomer('')
     setMetode('cash')
+    setChannel('offline')
+    setDiskonMode('none')
+    setDiskonInput('')
+    setVoucher(null)
+    setVoucherInput('')
+    setVoucherMsg('')
+    setMember(null)
+    setMemberQuery('')
+    setMemberMsg('')
+    setPoinPakai('')
+  }
+
+  // ===== Perhitungan =====
+  const subtotalNormal = cart.reduce((s, i) => s + i.harga * i.qty, 0)
+  const diskonResellerRp = channel === 'reseller' ? Math.round(subtotalNormal * diskonReseller / 100) : 0
+  const subtotal = Math.max(0, subtotalNormal - diskonResellerRp)
+
+  // Diskon manual
+  const diskonManual = diskonMode === 'persen'
+    ? Math.round(subtotal * (Number(diskonInput) || 0) / 100)
+    : diskonMode === 'nominal' ? Math.min(subtotal, Number(diskonInput) || 0) : 0
+
+  const setelahDiskon = Math.max(0, subtotal - diskonManual)
+
+  // Voucher
+  const diskonVoucher = useMemo(() => {
+    if (!voucher) return 0
+    if (voucher.tipe === 'persen') return Math.round(setelahDiskon * (Number(voucher.nilai) || 0) / 100)
+    return Math.min(setelahDiskon, Number(voucher.nilai) || 0)
+  }, [voucher, setelahDiskon])
+
+  const setelahVoucher = Math.max(0, setelahDiskon - diskonVoucher)
+
+  // Poin
+  const maxPoin = loyalty.nilai_poin > 0 ? Math.floor(setelahVoucher / loyalty.nilai_poin) : 0
+  const bolehTukar = member && loyalty.aktif && (member.poin || 0) >= loyalty.min_tukar && maxPoin > 0
+  const poinDipakai = bolehTukar ? Math.min(Number(poinPakai) || 0, member.poin || 0, maxPoin) : 0
+  const diskonPoin = nilaiPoin(poinDipakai, loyalty.nilai_poin)
+
+  const total = Math.max(0, setelahVoucher - diskonPoin)
+  const kembalian = Math.max(0, (Number(nominalBayar) || 0) - total)
+  const poinDidapat = loyalty.aktif && member ? hitungPoin(total, loyalty.poin_per_rupiah) : 0
+
+  const diskonTierRp = diskonResellerRp + diskonPoin
+
+  // ===== Aksi =====
+  const cekVoucher = async () => {
+    const kode = (voucherInput || '').trim().toUpperCase()
+    if (!kode) { setVoucherMsg('Masukkan kode voucher dulu'); return }
+    setCekPod(true); setVoucherMsg('')
+    try {
+      const { data, error } = await supabase
+        .from('vouchers').select('*').ilike('kode', kode).eq('aktif', true).limit(1).maybeSingle()
+      if (error) throw error
+      if (!data) { setVoucher(null); setVoucherMsg('❌ Voucher tidak ditemukan / tidak aktif'); return }
+
+      const today = new Date().toISOString().slice(0, 10)
+      if (data.tanggal_mulai && today < data.tanggal_mulai) {
+        setVoucher(null); setVoucherMsg(`❌ Voucher berlaku mulai ${data.tanggal_mulai}`); return
+      }
+      if (data.tanggal_berakhir && today > data.tanggal_berakhir) {
+        setVoucher(null); setVoucherMsg('❌ Voucher sudah kedaluwarsa'); return
+      }
+      setVoucher(data)
+      setVoucherMsg(`✅ Voucher aktif: ${data.tipe === 'persen' ? `${data.nilai}%` : formatRupiah(data.nilai)}`)
+    } catch (e) {
+      setVoucherMsg('❌ ' + e.message)
+    } finally {
+      setCekPod(false)
+    }
+  }
+
+  const cariMember = async () => {
+    const q = (memberQuery || '').trim()
+    if (!q) { setMemberMsg('Masukkan nama atau kontak'); return }
+    setMemberMsg('')
+    const { data } = await supabase
+      .from('loyalty_members').select('*')
+      .or(`nama.ilike.%${q}%,kontak.ilike.%${q}%`)
+      .order('total_belanja', { ascending: false }).limit(1).maybeSingle()
+    if (!data) {
+      setMember(null)
+      setMemberMsg('Member belum terdaftar — akan otomatis dibuat saat bayar.')
+      if (!customer) setCustomer(q)
+      return
+    }
+    setMember(data)
+    setCustomer(data.nama)
+    setPoinPakai('')
+    setMemberMsg(`✅ ${data.nama} — ${data.poin} poin (${TIER_EMOJI[data.tier] || ''} ${data.tier})`)
+  }
+
+  const buatMemberBaru = async () => {
+    const nama = (customer || memberQuery || '').trim()
+    if (!nama) { setMemberMsg('Isi nama pelanggan dulu'); return }
+    const { data, error } = await supabase
+      .from('loyalty_members')
+      .insert({ nama, kontak: null, poin: 0, tier: 'bronze', total_transaksi: 0, total_belanja: 0 })
+      .select().single()
+    if (error) { setMemberMsg('❌ ' + error.message); return }
+    setMember(data)
+    setMemberMsg(`✅ Member baru: ${data.nama}`)
   }
 
   // ===== Checkout =====
   const handleCheckout = async () => {
     if (cart.length === 0) { alert('Keranjang masih kosong'); return }
-    if (metode === 'cash' && (Number(nominalBayar) || 0) < subtotal) {
-      alert('Nominal bayar kurang dari total!')
-      return
+    if (metode === 'cash' && (Number(nominalBayar) || 0) < total) {
+      alert('Nominal bayar kurang dari total!'); return
     }
     setSaving(true)
     setError('')
@@ -115,83 +256,145 @@ export default function POS() {
         nama_produk: i.nama,
         qty: i.qty,
         harga_satuan: i.harga,
-        hpp_satuan: Number(i.hpp) || 0,
+        hpp_satuan: i.hpp,
         subtotal: i.harga * i.qty,
       }))
 
-      // 0. Catat/perbarui pelanggan (kalau namanya diisi)
-      let customerId = null
-      const namaCustomer = (customer || '').trim()
-      if (namaCustomer) {
+      const namaCustomer = (customer || member?.nama || '').trim()
+
+      // 0. Pelanggan
+      let customerId = member?.customer_id || null
+      if (namaCustomer && !customerId) {
         try {
           const { data: existing } = await supabase
-            .from('customers')
-            .select('id, total_transaksi, total_belanja')
-            .ilike('nama', namaCustomer)
-            .limit(1)
-            .maybeSingle()
-
+            .from('customers').select('id, total_transaksi, total_belanja')
+            .ilike('nama', namaCustomer).limit(1).maybeSingle()
           if (existing) {
             await supabase.from('customers').update({
               total_transaksi: (existing.total_transaksi || 0) + 1,
-              total_belanja: Number(existing.total_belanja || 0) + subtotal,
+              total_belanja: Number(existing.total_belanja || 0) + total,
               last_order: new Date().toISOString(),
             }).eq('id', existing.id)
             customerId = existing.id
           } else {
             const { data: baru } = await supabase.from('customers').insert({
-              nama: namaCustomer,
-              channel: 'offline',
-              total_transaksi: 1,
-              total_belanja: subtotal,
-              last_order: new Date().toISOString(),
+              nama: namaCustomer, channel, total_transaksi: 1,
+              total_belanja: total, last_order: new Date().toISOString(),
             }).select('id').single()
             customerId = baru?.id || null
           }
-        } catch (e) {
-          customerId = null // jangan gagalkan transaksi hanya karena data pelanggan
-        }
+        } catch (e) { customerId = customerId || null }
       }
 
-      // 1. Insert transaksi
+      // 1. Transaksi
       const { data: trx, error: trxErr } = await supabase
         .from('transactions')
         .insert({
           id_transaksi: idTransaksi,
-          total_bayar: subtotal,
+          total_bayar: total,
+          channel,
           metode_pembayaran: metode,
-          nominal_bayar: metode === 'cash' ? Number(nominalBayar) || 0 : subtotal,
+          diskon: diskonManual + diskonTierRp,
+          nominal_bayar: metode === 'cash' ? Number(nominalBayar) || 0 : total,
           kembalian: metode === 'cash' ? kembalian : 0,
           customer: namaCustomer || null,
           customer_id: customerId,
+          voucher_kode: voucher?.kode || null,
+          diskon_voucher: diskonVoucher,
           user_id: user?.id,
         })
-        .select('id')
-        .single()
-
+        .select('id').single()
       if (trxErr) throw trxErr
 
-      // 2. Insert items
+      // 2. Item
       const { error: itemsErr } = await supabase
         .from('transaction_items')
         .insert(itemsPayload.map((i) => ({ ...i, transaksi_id: trx.id })))
       if (itemsErr) throw itemsErr
 
-      // 3. Kurangi stok produk
+      // 3. Stok
       for (const i of cart) {
         const { data: prod } = await supabase.from('products').select('stok_produk').eq('id', i.id).single()
         const stokBaru = Math.max(0, (prod?.stok_produk || 0) - i.qty)
         await supabase.from('products').update({ stok_produk: stokBaru }).eq('id', i.id)
       }
 
+      // 4. Voucher usage
+      if (voucher) {
+        await supabase.from('voucher_usages').insert({
+          voucher_id: voucher.id, kode_voucher: voucher.kode, transaksi_id: trx.id,
+          customer_id: customerId, customer: namaCustomer || null, diskon: diskonVoucher,
+        })
+        await supabase.from('vouchers')
+          .update({ total_dipakai: (voucher.total_dipakai || 0) + 1 }).eq('id', voucher.id)
+      }
+
+      // 5. Loyalitas
+      let totalPoinBaru = member?.poin || 0
+      if (loyalty.aktif && namaCustomer) {
+        let m = member
+        if (!m) {
+          const { data: found } = await supabase
+            .from('loyalty_members').select('*').ilike('nama', namaCustomer).limit(1).maybeSingle()
+          m = found
+        }
+        const totalBelanjaBaru = Number(m?.total_belanja || 0) + total
+        const poinBaru = Math.max(0, (m?.poin || 0) - poinDipakai) + poinDidapat
+        const tierBaru = tierDari(totalBelanjaBaru, tiers)
+
+        if (m) {
+          await supabase.from('loyalty_members').update({
+            poin: poinBaru, tier: tierBaru,
+            total_transaksi: (m.total_transaksi || 0) + 1,
+            total_belanja: totalBelanjaBaru,
+            customer_id: customerId, last_visit: new Date().toISOString(),
+          }).eq('id', m.id)
+          totalPoinBaru = poinBaru
+          if (poinDipakai > 0) {
+            await supabase.from('loyalty_history').insert({
+              member_id: m.id, jenis: 'tukar', poin: poinDipakai,
+              keterangan: `Tukar poin di ${idTransaksi}`,
+            })
+          }
+          if (poinDidapat > 0) {
+            await supabase.from('loyalty_history').insert({
+              member_id: m.id, jenis: 'tambah', poin: poinDidapat,
+              keterangan: `Belanja ${idTransaksi}`,
+            })
+          }
+        } else {
+          const { data: nm } = await supabase.from('loyalty_members').insert({
+            nama: namaCustomer, customer_id: customerId, poin: poinDidapat, tier: 'bronze',
+            total_transaksi: 1, total_belanja: total, last_visit: new Date().toISOString(),
+          }).select().single()
+          totalPoinBaru = poinDidapat
+          if (nm && poinDidapat > 0) {
+            await supabase.from('loyalty_history').insert({
+              member_id: nm.id, jenis: 'tambah', poin: poinDidapat, keterangan: `Belanja ${idTransaksi}`,
+            })
+          }
+        }
+      }
+
       logAudit({
-        aksi: 'transaksi',
-        user,
-        sheetTarget: 'transactions',
-        detail: { id_transaksi: idTransaksi, total: subtotal, metode, items: cart.length, customer: namaCustomer || null },
+        aksi: 'transaksi', user, sheetTarget: 'transactions',
+        detail: {
+          id_transaksi: idTransaksi, total, metode, channel, items: cart.length,
+          customer: namaCustomer || null, voucher: voucher?.kode || null,
+          diskon: diskonManual + diskonTierRp, diskon_voucher: diskonVoucher,
+          poin_ditukar: poinDipakai, poin_didapat: poinDidapat,
+        },
       })
 
-      setSukses({ id: idTransaksi, total: subtotal, kembalian, metode })
+      setSukses({
+        id: idTransaksi, total, kembalian, metode, channel,
+        items: itemsPayload, customer: namaCustomer,
+        diskon: diskonManual + diskonTierRp, diskon_voucher: diskonVoucher,
+        voucher_kode: voucher?.kode || null,
+        poin_didapat: poinDidapat, poin_ditukar: poinDipakai, total_poin: totalPoinBaru,
+        nominal_bayar: metode === 'cash' ? Number(nominalBayar) || 0 : total,
+        tanggal: new Date().toISOString(),
+      })
       resetCart()
       fetchProduk()
     } catch (err) {
@@ -201,8 +404,18 @@ export default function POS() {
     }
   }
 
+  const cetak = (s) => cetakStruk({
+    ...s,
+    nama_toko: toko.nama_toko, alamat_toko: toko.alamat_toko,
+    telepon_toko: toko.telepon_toko, footer_struk: toko.footer_struk,
+  })
+
   return (
-    <AppLayout title="POS Kasir" subtitle="Transaksi penjualan cepat">
+    <AppLayout
+      title="POS Kasir"
+      subtitle="Transaksi penjualan cepat"
+      actions={<Link href="/kasir/tutup" className="btn btn-outline btn-sm">🔒 Tutup Kas</Link>}
+    >
       {error && <div className="alert alert-danger">⚠️ {error}</div>}
 
       {/* Notifikasi sukses */}
@@ -211,12 +424,16 @@ export default function POS() {
           <div className="flex-1">
             <b>✅ Transaksi berhasil!</b><br />
             <span className="text-sm">{sukses.id}</span>
+            {sukses.poin_didapat > 0 && <><br /><span className="text-sm">Poin +{sukses.poin_didapat} (total {sukses.total_poin})</span></>}
           </div>
           <div className="text-right">
             <div className="font-extrabold">{formatRupiah(sukses.total)}</div>
             {sukses.metode === 'cash' && <div className="text-sm">Kembalian: {formatRupiah(sukses.kembalian)}</div>}
           </div>
-          <button className="btn btn-sm btn-outline" onClick={() => setSukses(null)}>✕</button>
+          <div className="flex gap-2">
+            <button className="btn btn-sm btn-primary" onClick={() => cetak(sukses)}>🖨️ Struk</button>
+            <button className="btn btn-sm btn-outline" onClick={() => setSukses(null)}>✕</button>
+          </div>
         </div>
       )}
 
@@ -260,9 +477,25 @@ export default function POS() {
           )}
         </div>
 
-        {/* ===== KANAN: Keranjang ===== */}
+        {/* ===== KANAN: Keranjang & Pembayaran ===== */}
         <div className="card pos-keranjang" style={{ padding: 16 }}>
           <div className="card-title mb-3"><span className="nav-icon">🧺</span> Keranjang ({cart.length})</div>
+
+          {/* Channel penjualan */}
+          <div className="form-group">
+            <label className="form-label">Channel</label>
+            <div className="channel-grid">
+              {[
+                { k: 'offline', l: '🏪 Offline' },
+                { k: 'online', l: '🌐 Online' },
+                { k: 'reseller', l: `📦 Reseller (-${diskonReseller}%)` },
+              ].map((c) => (
+                <button key={c.k} type="button" className={`metode-btn ${channel === c.k ? 'active' : ''}`} onClick={() => setChannel(c.k)}>
+                  {c.l}
+                </button>
+              ))}
+            </div>
+          </div>
 
           {cart.length === 0 ? (
             <div className="text-center text-muted py-4">Keranjang kosong.<br /><span className="text-sm">Klik produk untuk menambahkan.</span></div>
@@ -286,9 +519,88 @@ export default function POS() {
             </div>
           )}
 
+          {/* ===== Diskon manual ===== */}
+          <div className="form-group mt-3">
+            <label className="form-label">Diskon</label>
+            <div className="diskon-row">
+              <select className="form-control" style={{ maxWidth: 120 }} value={diskonMode} onChange={(e) => { setDiskonMode(e.target.value); setDiskonInput('') }}>
+                <option value="none">Tanpa</option>
+                <option value="persen">Persen %</option>
+                <option value="nominal">Nominal Rp</option>
+              </select>
+              {diskonMode !== 'none' && (
+                <input className="form-control" type="number" placeholder={diskonMode === 'persen' ? '0' : '0'}
+                  value={diskonInput} onChange={(e) => setDiskonInput(e.target.value)} />
+              )}
+              {diskonManual > 0 && <span className="text-sm text-danger font-bold">−{formatRupiah(diskonManual)}</span>}
+            </div>
+          </div>
+
+          {/* ===== Voucher ===== */}
+          <div className="form-group">
+            <label className="form-label">Kode Voucher</label>
+            <div className="diskon-row">
+              <input className="form-control" placeholder="mis. PROMO10" value={voucherInput}
+                onChange={(e) => setVoucherInput(e.target.value.toUpperCase())} />
+              <button type="button" className="btn btn-outline btn-sm" onClick={cekVoucher} disabled={cekPod}>
+                {cekPod ? '...' : 'Pakai'}
+              </button>
+              {voucher && <button type="button" className="btn btn-sm btn-danger" onClick={() => { setVoucher(null); setVoucherInput(''); setVoucherMsg('') }}>✕</button>}
+            </div>
+            {voucherMsg && <div className="text-xs mt-1">{voucherMsg}</div>}
+            {voucher && diskonVoucher > 0 && <div className="text-sm text-danger font-bold mt-1">−{formatRupiah(diskonVoucher)}</div>}
+          </div>
+
+          {/* ===== Member / Poin ===== */}
+          {loyalty.aktif && (
+            <div className="form-group">
+              <label className="form-label">Member / Pelanggan</label>
+              <div className="diskon-row">
+                <input className="form-control" placeholder="Nama / kontak" value={memberQuery}
+                  onChange={(e) => setMemberQuery(e.target.value)} />
+                <button type="button" className="btn btn-outline btn-sm" onClick={cariMember}>Cari</button>
+              </div>
+              {memberMsg && <div className="text-xs mt-1">{memberMsg}</div>}
+              {member && (
+                <div className="member-box mt-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-bold">{TIER_EMOJI[member.tier] || '🥉'} {member.nama}</div>
+                      <div className="text-xs text-muted">Tier {member.tier} · {member.poin} poin</div>
+                    </div>
+                    <button type="button" className="btn btn-sm btn-outline" onClick={() => { setMember(null); setPoinPakai(''); setMemberMsg('') }}>Ganti</button>
+                  </div>
+                  {bolehTukar && (
+                    <div className="diskon-row mt-2">
+                      <input className="form-control" type="number" placeholder={`maks ${Math.min(member.poin, maxPoin)}`}
+                        value={poinPakai} onChange={(e) => setPoinPakai(e.target.value)} />
+                      <button type="button" className="btn btn-sm btn-primary"
+                        onClick={() => setPoinPakai(String(Math.min(member.poin, maxPoin)))}>Maks</button>
+                    </div>
+                  )}
+                  {diskonPoin > 0 && <div className="text-sm text-danger font-bold mt-1">Tukar poin −{formatRupiah(diskonPoin)}</div>}
+                  {poinDidapat > 0 && <div className="text-sm text-success mt-1">Akan dapat +{poinDidapat} poin</div>}
+                </div>
+              )}
+              {!member && memberQuery.trim() && memberMsg.includes('belum terdaftar') && (
+                <button type="button" className="btn btn-sm btn-outline mt-2" onClick={buatMemberBaru}>＋ Daftarkan sebagai member</button>
+              )}
+            </div>
+          )}
+
+          {/* ===== Ringkasan ===== */}
           <div className="cart-total">
-            <div className="hpp-row"><span>Subtotal</span><b>{formatRupiah(subtotal)}</b></div>
-            <div className="hpp-row"><span>Total</span><b className="text-primary" style={{ fontSize: 20 }}>{formatRupiah(subtotal)}</b></div>
+            {diskonResellerRp > 0 && (
+              <div className="baw-row"><span>Harga normal</span><b className="text-muted">{formatRupiah(subtotalNormal)}</b></div>
+            )}
+            {diskonResellerRp > 0 && (
+              <div className="baw-row"><span>Diskon reseller {diskonReseller}%</span><b className="text-danger">−{formatRupiah(diskonResellerRp)}</b></div>
+            )}
+            <div className="baw-row"><span>Subtotal</span><b>{formatRupiah(subtotal)}</b></div>
+            {diskonManual > 0 && <div className="baw-row"><span>Diskon</span><b className="text-danger">−{formatRupiah(diskonManual)}</b></div>}
+            {diskonVoucher > 0 && <div className="baw-row"><span>Voucher {voucher?.kode}</span><b className="text-danger">−{formatRupiah(diskonVoucher)}</b></div>}
+            {diskonPoin > 0 && <div className="baw-row"><span>Tukar {poinDipakai} poin</span><b className="text-danger">−{formatRupiah(diskonPoin)}</b></div>}
+            <div className="baw-row total"><span>TOTAL</span><b className="text-primary">{formatRupiah(total)}</b></div>
           </div>
 
           {/* Metode pembayaran */}
@@ -308,6 +620,13 @@ export default function POS() {
               <label className="form-label">Nominal Bayar</label>
               <input className="form-control" type="number" value={nominalBayar} onChange={(e) => setNominalBayar(e.target.value)} placeholder="0" />
               <div className="text-sm text-muted mt-2">Kembalian: <b className="text-success">{formatRupiah(kembalian)}</b></div>
+              <div className="flex gap-2 mt-2 flex-wrap">
+                {[total, 50000, 100000, 200000].filter((v, i, a) => v > 0 && a.indexOf(v) === i).slice(0, 4).map((v) => (
+                  <button key={v} type="button" className="btn btn-sm btn-outline" onClick={() => setNominalBayar(String(v))}>
+                    {v === total ? 'Uang Pas' : formatRupiah(v)}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
@@ -317,7 +636,7 @@ export default function POS() {
           </div>
 
           <button className="btn btn-primary btn-block" style={{ padding: 14, fontSize: 16 }} onClick={handleCheckout} disabled={saving || cart.length === 0}>
-            {saving ? <><span className="spinner" /> Memproses...</> : `💳 Bayar ${formatRupiah(subtotal)}`}
+            {saving ? <><span className="spinner" /> Memproses...</> : `💳 Bayar ${formatRupiah(total)}`}
           </button>
         </div>
       </div>
@@ -343,7 +662,7 @@ export default function POS() {
         .pos-produk-nama { font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .pos-produk-harga { font-size: 13px; font-weight: 800; color: var(--primary); }
 
-        .cart-list { display: flex; flex-direction: column; gap: 8px; max-height: 340px; overflow-y: auto; }
+        .cart-list { display: flex; flex-direction: column; gap: 8px; max-height: 300px; overflow-y: auto; }
         .cart-item {
           display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: center;
           padding: 10px; border: 1px solid var(--border); border-radius: var(--radius-sm);
@@ -359,15 +678,22 @@ export default function POS() {
         .qty-del:hover { border-color: var(--danger); }
 
         .cart-total { margin-top: 12px; padding-top: 12px; border-top: 2px solid var(--border); }
-        .hpp-row { display: flex; justify-content: space-between; padding: 4px 0; }
-        .hpp-row span { color: var(--muted); }
+        .baw-row { display: flex; justify-content: space-between; padding: 3px 0; font-size: 13px; }
+        .baw-row span { color: var(--muted); }
+        .baw-row.total { border-top: 1px solid var(--border); margin-top: 6px; padding-top: 8px; }
+        .baw-row.total b { font-size: 20px; }
 
         .metode-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+        .channel-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+        .channel-grid .metode-btn { font-size: 11px; padding: 8px 4px; }
         .metode-btn {
           padding: 10px; border: 1.5px solid var(--border); border-radius: var(--radius-sm);
           font-weight: 600; font-size: 13px; transition: all .15s; background: var(--card);
         }
         .metode-btn.active { border-color: var(--primary); background: var(--primary-light); color: var(--primary-dark); }
+
+        .diskon-row { display: flex; align-items: center; gap: 8px; }
+        .member-box { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px; background: var(--bg); }
       `}</style>
     </AppLayout>
   )

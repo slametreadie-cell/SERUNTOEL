@@ -5,10 +5,13 @@ import { useAuth } from './AuthProvider'
 
 const NAV_GROUPS = [
   {
-    label: 'Utama',
+    label: 'Kasir',
     items: [
       { emoji: '📊', title: 'Dashboard', href: '/dashboard' },
       { emoji: '🏪', title: 'POS Kasir', href: '/pos' },
+      { emoji: '🧾', title: 'Riwayat Transaksi', href: '/kasir' },
+      { emoji: '🔒', title: 'Tutup Kas', href: '/kasir/tutup' },
+      { emoji: '🎟️', title: 'Voucher & Promo', href: '/voucher' },
     ],
   },
   {
@@ -16,6 +19,8 @@ const NAV_GROUPS = [
     items: [
       { emoji: '📦', title: 'Inventory', href: '/inventory' },
       { emoji: '👥', title: 'Pelanggan', href: '/customers' },
+      { emoji: '💎', title: 'Loyalty & Member', href: '/loyalty' },
+      { emoji: '🤝', title: 'Reseller', href: '/reseller' },
       { emoji: '🧾', title: 'Produk & HPP', href: '/produk-hpp' },
       { emoji: '🍲', title: 'Resep Produksi', href: '/produksi' },
       { emoji: '🏭', title: 'Supplier', href: '/suppliers' },

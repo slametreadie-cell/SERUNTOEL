@@ -76,26 +76,51 @@ export default function Settings() {
           ))}
         </div>
 
-        {/* Kategori produk */}
+        {/* Identitas toko untuk struk */}
         <div className="card">
-          <div className="card-header"><div className="card-title"><span className="nav-icon">🏷️</span> Kategori Produk</div></div>
-
-          <div className="flex gap-2 mb-3">
-            <input className="form-control" placeholder="Nama kategori baru" value={newKategori} onChange={(e) => setNewKategori(e.target.value)} />
-            <input className="form-control" style={{ maxWidth: 90 }} type="number" placeholder="Margin %" value={newMargin} onChange={(e) => setNewMargin(e.target.value)} />
-            <button className="btn btn-primary" onClick={addKategori}>＋</button>
-          </div>
-
-          {kategori.map((k) => (
-            <div key={k.id} className="flex items-center justify-between py-2" style={{ borderBottom: '1px solid var(--border)' }}>
-              <div>
-                <div className="font-bold">{k.nama}</div>
-                <div className="text-xs text-muted">Margin default: {k.margin_persen}%</div>
+          <div className="card-header"><div className="card-title"><span className="nav-icon">🧾</span> Identitas Toko (Struk)</div></div>
+          {['nama_toko', 'alamat_toko', 'telepon_toko', 'footer_struk'].map((key) => {
+            const row = config.find((c) => c.key === key)
+            return (
+              <div className="form-group" key={key}>
+                <label className="form-label">
+                  {{ nama_toko: 'Nama Toko', alamat_toko: 'Alamat', telepon_toko: 'No. Telepon', footer_struk: 'Ucapan di Struk' }[key]}
+                </label>
+                <input
+                  className="form-control"
+                  defaultValue={row?.value || ''}
+                  placeholder={row ? '' : 'belum diisi'}
+                  onBlur={(e) => {
+                    if (row) updateConfig(row.id, e.target.value)
+                    else supabase.from('configuration').insert({ key, value: e.target.value }).then(() => fetchData())
+                  }}
+                />
               </div>
-              <button className="btn btn-sm btn-danger" onClick={() => hapusKategori(k.id)}>✕</button>
-            </div>
-          ))}
+            )
+          })}
+          <div className="text-xs text-muted">Teks ini muncul di struk yang dicetak dari POS.</div>
         </div>
+      </div>
+
+      {/* Kategori produk */}
+      <div className="card">
+        <div className="card-header"><div className="card-title"><span className="nav-icon">🏷️</span> Kategori Produk</div></div>
+
+        <div className="flex gap-2 mb-3">
+          <input className="form-control" placeholder="Nama kategori baru" value={newKategori} onChange={(e) => setNewKategori(e.target.value)} />
+          <input className="form-control" style={{ maxWidth: 90 }} type="number" placeholder="Margin %" value={newMargin} onChange={(e) => setNewMargin(e.target.value)} />
+          <button className="btn btn-primary" onClick={addKategori}>＋</button>
+        </div>
+
+        {kategori.map((k) => (
+          <div key={k.id} className="flex items-center justify-between py-2" style={{ borderBottom: '1px solid var(--border)' }}>
+            <div>
+              <div className="font-bold">{k.nama}</div>
+              <div className="text-xs text-muted">Margin default: {k.margin_persen}%</div>
+            </div>
+            <button className="btn btn-sm btn-danger" onClick={() => hapusKategori(k.id)}>✕</button>
+          </div>
+        ))}
       </div>
 
       {/* Info akun */}
