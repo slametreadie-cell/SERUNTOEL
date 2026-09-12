@@ -1,0 +1,25 @@
+{
+  "name": "Seruntul Advanced — Business Management",
+  "short_name": "Seruntul",
+  "description": "Kelola produk, HPP, stok, kasir, dan laporan usaha dalam satu aplikasi.",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "lang": "id",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    { "name": "POS Kasir", "short_name": "Kasir", "url": "/pos" },
+    { "name": "Laporan", "short_name": "Laporan", "url": "/laporan" },
+    { "name": "Stok & Opname", "short_name": "Stok", "url": "/inventory/stok" }
+  ]
+}

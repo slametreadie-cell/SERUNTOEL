@@ -49,14 +49,25 @@ const NAV_GROUPS = [
     items: [
       { emoji: '💰', title: 'Cashflow', href: '/cashflow' },
       { emoji: '📥', title: 'Hutang & Piutang', href: '/keuangan/hutang' },
-      { emoji: '📈', title: 'Laporan', href: '/laporan' },
-      { emoji: '🎯', title: 'Forecast & Simulasi', href: '/forecast' },
+      { emoji: '📈', title: 'Laporan Penjualan', href: '/laporan' },
+      { emoji: '📑', title: 'Laba Rugi (P&L)', href: '/laba-rugi' },
+      { emoji: '🎯', title: 'Target & Budget', href: '/target' },
+    ],
+  },
+  {
+    label: 'Analisis',
+    items: [
+      { emoji: '🩺', title: 'Diagnosis Bisnis', href: '/diagnosis' },
+      { emoji: '📉', title: 'Forecast & DOH', href: '/forecast-doh' },
+      { emoji: '🔮', title: 'Simulasi Skenario', href: '/forecast' },
     ],
   },
   {
     label: 'Sistem',
     items: [
       { emoji: '⚙️', title: 'Pengaturan', href: '/settings' },
+      { emoji: '🛠️', title: 'Pengaturan Lanjutan', href: '/pengaturan-lanjutan' },
+      { emoji: '📖', title: 'Panduan', href: '/panduan' },
       { emoji: '🔐', title: 'Audit Log', href: '/audit' },
     ],
   },
