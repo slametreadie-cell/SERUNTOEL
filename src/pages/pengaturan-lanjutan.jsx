@@ -44,7 +44,10 @@ export default function PengaturanLanjutan() {
   const [msg, setMsg] = useState('')
   const [tesStatus, setTesStatus] = useState('')
 
-  const [userBaru, setUserBaru] = useState({ email: '', nama: '', role: 'kasir' })
+  const [userBaru, setUserBaru] = useState({ email: '', password: '', nama: '', role: 'kasir', lihat: false })
+  const [editUser, setEditUser] = useState(null) // { id, email, nama, password, lihat }
+  const [authUsers, setAuthUsers] = useState(null) // dari API admin
+  const [prosesUser, setProsesUser] = useState(false)
 
   const fetchData = useCallback(async () => {
     setLoading(true); setError('')
@@ -66,6 +69,87 @@ export default function PengaturanLanjutan() {
   }, [])
 
   useEffect(() => { fetchData() }, [fetchData])
+
+  // Ambil akun login (Supabase Auth) lewat API admin
+  const muatAkunLogin = useCallback(async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) return
+      const r = await fetch('/api/admin/users?aksi=list', {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      })
+      const d = await r.json()
+      if (!r.ok) { setAuthUsers({ error: d.error }); return }
+      setAuthUsers(d.users || [])
+    } catch (e) {
+      setAuthUsers({ error: e.message })
+    }
+  }, [])
+
+  useEffect(() => { muatAkunLogin() }, [muatAkunLogin])
+
+  /** Panggil API admin dengan token sesi. */
+  const apiAdmin = async (payload) => {
+    const { data: { session } } = await supabase.auth.getSession()
+    const r = await fetch('/api/admin/users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session?.access_token || ''}` },
+      body: JSON.stringify(payload),
+    })
+    const d = await r.json().catch(() => ({}))
+    if (!r.ok) throw new Error(d.error || 'Gagal menghubungi server.')
+    return d
+  }
+
+  const tambahAkunLogin = async (e) => {
+    e.preventDefault()
+    setError(''); setMsg('')
+    if (!userBaru.email.trim() || !userBaru.password) { setError('Email dan password wajib diisi'); return }
+    setProsesUser(true)
+    try {
+      await apiAdmin({
+        aksi: 'create',
+        email: userBaru.email, password: userBaru.password,
+        nama: userBaru.nama, role: userBaru.role,
+      })
+      logAudit({ aksi: 'tambah_user', user, sheetTarget: 'users', detail: { email: userBaru.email, role: userBaru.role } })
+      setMsg(`✅ Akun ${userBaru.email.trim().toLowerCase()} dibuat & bisa langsung login`)
+      setUserBaru({ email: '', password: '', nama: '', role: 'kasir', lihat: false })
+      await muatAkunLogin(); fetchData()
+    } catch (err) { setError(err.message) }
+    finally { setProsesUser(false); setTimeout(() => setMsg(''), 5000) }
+  }
+
+  const simpanEditUser = async () => {
+    if (!editUser) return
+    setError(''); setMsg(''); setProsesUser(true)
+    try {
+      await apiAdmin({
+        aksi: 'update',
+        id: editUser.id,
+        email: editUser.email,
+        password: editUser.password || undefined,
+        nama: editUser.nama,
+      })
+      logAudit({ aksi: 'ubah_user', user, sheetTarget: 'users', detail: { email: editUser.email } })
+      setMsg('✅ Akun diperbarui' + (editUser.password ? ' (password diganti)' : ''))
+      setEditUser(null)
+      await muatAkunLogin(); fetchData()
+    } catch (err) { setError(err.message) }
+    finally { setProsesUser(false); setTimeout(() => setMsg(''), 5000) }
+  }
+
+  const hapusAkunLogin = async (u) => {
+    if (!confirm(`Hapus akun ${u.email}?\n\nAkun ini tidak akan bisa login lagi.`)) return
+    setError(''); setMsg('')
+    try {
+      await apiAdmin({ aksi: 'delete', id: u.id, email: u.email })
+      logAudit({ aksi: 'hapus_user', user, sheetTarget: 'users', detail: { email: u.email } })
+      setMsg(`✅ Akun ${u.email} dihapus`)
+      await muatAkunLogin(); fetchData()
+    } catch (err) { setError(err.message) }
+    setTimeout(() => setMsg(''), 4000)
+  }
 
   const val = (key) => config[key]?.value ?? ''
 
@@ -142,15 +226,17 @@ export default function PengaturanLanjutan() {
   }
 
   const ubahRole = async (u, role) => {
-    await supabase.from('users').update({ role }).eq('id', u.id)
+    // simpan role di tabel users (dibuat kalau barisnya belum ada)
+    const ada = users.find((x) => x.email === u.email)
+    if (ada) {
+      await supabase.from('users').update({ role }).eq('id', ada.id)
+    } else {
+      await supabase.from('users').insert({ id: u.id, email: u.email, role })
+    }
     logAudit({ aksi: 'ubah_role', user, sheetTarget: 'users', detail: { email: u.email, role } })
+    setMsg(`✅ Role ${u.email} → ${role}`)
     fetchData()
-  }
-
-  const hapusUser = async (u) => {
-    if (!confirm(`Hapus user ${u.email}?`)) return
-    await supabase.from('users').delete().eq('id', u.id)
-    fetchData()
+    setTimeout(() => setMsg(''), 3000)
   }
 
   const ROLE_BADGE = { owner: 'badge-danger', admin: 'badge-warning', produksi: 'badge-info', kasir: 'badge-success', user: 'badge-neutral' }
@@ -281,18 +367,35 @@ export default function PengaturanLanjutan() {
       {/* ===== USER ===== */}
       {tab === 'user' && (
         <>
-          <form onSubmit={tambahUser}>
+          {/* Tambah akun login */}
+          <form onSubmit={tambahAkunLogin}>
             <div className="card">
-              <div className="card-header"><div className="card-title"><span className="nav-icon">👤</span> Tambah User</div></div>
+              <div className="card-header"><div className="card-title"><span className="nav-icon">👤</span> Tambah Akun Login</div></div>
+              <p className="text-sm text-muted mb-3">
+                Akun yang dibuat di sini <b>langsung bisa login</b> — tidak perlu buka Supabase lagi.
+              </p>
               <div className="form-row">
                 <div className="form-group" style={{ flex: 2 }}>
                   <label className="form-label">Email *</label>
                   <input className="form-control" type="email" value={userBaru.email}
                     onChange={(e) => setUserBaru({ ...userBaru, email: e.target.value })} placeholder="kasir@toko.com" />
                 </div>
+                <div className="form-group" style={{ flex: 2 }}>
+                  <label className="form-label">Password *</label>
+                  <div className="pw-wrap">
+                    <input className="form-control" type={userBaru.lihat ? 'text' : 'password'} value={userBaru.password}
+                      onChange={(e) => setUserBaru({ ...userBaru, password: e.target.value })} placeholder="min. 6 karakter" />
+                    <button type="button" className="pw-toggle" tabIndex={-1}
+                      onClick={() => setUserBaru({ ...userBaru, lihat: !userBaru.lihat })}>
+                      {userBaru.lihat ? '🙈' : '👁️'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div className="form-row">
                 <div className="form-group">
                   <label className="form-label">Nama</label>
-                  <input className="form-control" value={userBaru.nama} onChange={(e) => setUserBaru({ ...userBaru, nama: e.target.value })} />
+                  <input className="form-control" value={userBaru.nama} onChange={(e) => setUserBaru({ ...userBaru, nama: e.target.value })} placeholder="Nama karyawan" />
                 </div>
                 <div className="form-group">
                   <label className="form-label">Role</label>
@@ -305,55 +408,127 @@ export default function PengaturanLanjutan() {
                   </select>
                 </div>
               </div>
-              <div className="alert alert-warning">
-                ℹ️ Menambahkan user di sini mencatat <b>data & role</b>-nya. Untuk bisa login, buat akunnya di
-                <b> Supabase → Authentication → Users → Add user</b> dengan email yang sama.
-              </div>
               <div className="flex justify-end">
-                <button type="submit" className="btn btn-primary" disabled={saving}>
-                  {saving ? <><span className="spinner" /> Menyimpan...</> : '＋ Tambah User'}
+                <button type="submit" className="btn btn-primary" disabled={prosesUser}>
+                  {prosesUser ? <><span className="spinner" /> Membuat...</> : '＋ Buat Akun'}
                 </button>
               </div>
             </div>
           </form>
 
+          {/* Modal edit user */}
+          {editUser && (
+            <div className="card" style={{ border: '2px solid var(--primary)' }}>
+              <div className="card-header">
+                <div className="card-title"><span className="nav-icon">✏️</span> Ubah Akun — {editUser.email}</div>
+                <button className="btn btn-sm btn-outline" onClick={() => setEditUser(null)}>✕</button>
+              </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label className="form-label">Email</label>
+                  <input className="form-control" type="email" value={editUser.email}
+                    onChange={(e) => setEditUser({ ...editUser, email: e.target.value })} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Nama</label>
+                  <input className="form-control" value={editUser.nama || ''}
+                    onChange={(e) => setEditUser({ ...editUser, nama: e.target.value })} />
+                </div>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Password Baru (biarkan kosong kalau tidak diganti)</label>
+                <div className="pw-wrap">
+                  <input className="form-control" type={editUser.lihat ? 'text' : 'password'} value={editUser.password || ''}
+                    onChange={(e) => setEditUser({ ...editUser, password: e.target.value })} placeholder="kosongkan jika tidak diubah" />
+                  <button type="button" className="pw-toggle" tabIndex={-1}
+                    onClick={() => setEditUser({ ...editUser, lihat: !editUser.lihat })}>
+                    {editUser.lihat ? '🙈' : '👁️'}
+                  </button>
+                </div>
+              </div>
+              <div className="flex gap-2 justify-end">
+                <button className="btn btn-outline" onClick={() => setEditUser(null)}>Batal</button>
+                <button className="btn btn-primary" onClick={simpanEditUser} disabled={prosesUser}>
+                  {prosesUser ? <><span className="spinner" /> Menyimpan...</> : '💾 Simpan Perubahan'}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Daftar akun login */}
           <div className="card" style={{ padding: 0 }}>
             <div className="card-header" style={{ padding: 16 }}>
-              <div className="card-title"><span className="nav-icon">📋</span> Daftar User</div>
-              <span className="text-sm text-muted">{users.length} user</span>
+              <div className="card-title"><span className="nav-icon">🔑</span> Akun Login</div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted">
+                  {Array.isArray(authUsers) ? `${authUsers.length} akun` : '—'}
+                </span>
+                <button className="btn btn-sm btn-outline" onClick={muatAkunLogin}>🔄 Muat Ulang</button>
+              </div>
             </div>
-            {loading ? <p className="text-muted text-center py-4">Memuat...</p>
-              : users.length === 0 ? (
-                <div className="empty-state">
-                  <div className="nav-icon" style={{ fontSize: 40 }}>👤</div>
-                  <h3>Belum ada user terdaftar</h3>
-                  <p className="text-sm">Tambahkan user untuk membatasi akses tiap peran.</p>
-                </div>
-              ) : (
-                <div className="table-wrap">
-                  <table className="table">
-                    <thead><tr><th>Email</th><th>Nama</th><th>Role</th><th>Terdaftar</th><th></th></tr></thead>
-                    <tbody>
-                      {users.map((u) => (
+
+            {authUsers?.error ? (
+              <div className="alert alert-warning" style={{ margin: 16 }}>
+                ⚠️ {authUsers.error}
+                <br />
+                <span className="text-xs">
+                  Pastikan <code>SUPABASE_SERVICE_ROLE_KEY</code> sudah diset di Vercel → Settings → Environment Variables.
+                </span>
+              </div>
+            ) : !Array.isArray(authUsers) ? (
+              <p className="text-muted text-center py-4">Memuat akun...</p>
+            ) : authUsers.length === 0 ? (
+              <div className="empty-state">
+                <div className="nav-icon" style={{ fontSize: 40 }}>👤</div>
+                <h3>Belum ada akun</h3>
+              </div>
+            ) : (
+              <div className="table-wrap">
+                <table className="table">
+                  <thead><tr><th>Email</th><th>Nama</th><th>Role</th><th>Login Terakhir</th><th>Status</th><th></th></tr></thead>
+                  <tbody>
+                    {authUsers.map((u) => {
+                      const info = users.find((x) => x.email === u.email)
+                      const diriSendiri = u.email === user?.email
+                      return (
                         <tr key={u.id}>
-                          <td className="font-bold">{u.email}{u.email === user?.email && <span className="badge badge-info" style={{ marginLeft: 6 }}>Anda</span>}</td>
-                          <td>{u.nama || '—'}</td>
+                          <td className="font-bold">
+                            {u.email}
+                            {diriSendiri && <span className="badge badge-info" style={{ marginLeft: 6 }}>Anda</span>}
+                          </td>
+                          <td>{u.nama || info?.nama || '—'}</td>
                           <td>
-                            <select className="form-control" style={{ maxWidth: 130, padding: '4px 8px' }}
-                              value={u.role} onChange={(e) => ubahRole(u, e.target.value)}>
-                              {['owner','admin','kasir','produksi','user'].map((r) => <option key={r} value={r}>{r}</option>)}
+                            <select className="form-control" style={{ maxWidth: 120, padding: '4px 8px' }}
+                              value={info?.role || 'user'} onChange={(e) => ubahRole({ email: u.email, id: u.id, role: info?.role }, e.target.value)}>
+                              {['owner', 'admin', 'kasir', 'produksi', 'user'].map((r) => <option key={r} value={r}>{r}</option>)}
                             </select>
                           </td>
-                          <td className="text-muted text-sm">{u.created_at ? new Date(u.created_at).toLocaleDateString('id-ID') : '—'}</td>
+                          <td className="text-muted text-sm">
+                            {u.login_terakhir ? new Date(u.login_terakhir).toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'belum pernah'}
+                          </td>
+                          <td>
+                            <span className={`badge ${u.terkonfirmasi ? 'badge-success' : 'badge-warning'}`}>
+                              {u.terkonfirmasi ? 'Aktif' : 'Belum aktif'}
+                            </span>
+                          </td>
                           <td className="text-right">
-                            {u.email !== user?.email && <button className="btn btn-sm btn-danger" onClick={() => hapusUser(u)}>✕</button>}
+                            <div className="flex gap-1 justify-end">
+                              <button className="btn btn-sm btn-outline"
+                                onClick={() => setEditUser({ id: u.id, email: u.email, nama: u.nama || info?.nama || '', password: '', lihat: false })}>
+                                ✏️
+                              </button>
+                              {!diriSendiri && (
+                                <button className="btn btn-sm btn-danger" onClick={() => hapusAkunLogin(u)}>✕</button>
+                              )}
+                            </div>
                           </td>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </>
       )}

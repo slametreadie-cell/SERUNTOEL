@@ -3,12 +3,27 @@ import Link from 'next/link'
 import { supabase } from '../utils/supabaseClient'
 import { useAuth } from '../components/AuthProvider'
 import AppLayout from '../components/AppLayout'
+import { logAudit } from '../utils/audit'
 
 const formatRupiah = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
 
 export default function Inventory() {
   const { user } = useAuth()
+
+  const hapusBahan = async (b) => {
+    if (!confirm(`Hapus bahan "${b.nama_bahan}"?\n\nRiwayat harga & pembeliannya ikut terhapus.`)) return
+    const { error } = await supabase.from('ingredients').delete().eq('id', b.id)
+    if (error) { alert('Gagal menghapus: ' + error.message); return }
+    logAudit({ aksi: 'hapus_bahan', user, sheetTarget: 'ingredients', detail: { nama: b.nama_bahan } })
+    fetchData()
+  }
+
+  const hapusPembelian = async (row) => {
+    if (!confirm('Hapus catatan pembelian ini?')) return
+    await supabase.from('supplier_purchases').delete().eq('id', row.id)
+    fetchData()
+  }
   const [tab, setTab] = useState('bahan')
   const [bahan, setBahan] = useState([])
   const [produkJadi, setProdukJadi] = useState([])
@@ -119,7 +134,7 @@ export default function Inventory() {
                 <div className="table-wrap">
                   <table className="table">
                     <thead>
-                      <tr><th>Bahan</th><th>Satuan</th><th>Stok Sisa</th><th>Min.</th><th>Status</th></tr>
+                      <tr><th>Bahan</th><th>Satuan</th><th>Stok Sisa</th><th>Min.</th><th>Status</th><th></th></tr>
                     </thead>
                     <tbody>
                       {bahanFiltered.map((b) => {
@@ -134,6 +149,9 @@ export default function Inventory() {
                               <span className={`badge ${kritis ? 'badge-danger' : 'badge-success'}`}>
                                 {kritis ? 'Kritis' : 'Aman'}
                               </span>
+                            </td>
+                            <td className="text-right">
+                              <button className="btn btn-sm btn-danger" onClick={() => hapusBahan(b)}>✕</button>
                             </td>
                           </tr>
                         )
@@ -204,7 +222,7 @@ export default function Inventory() {
                 <div className="table-wrap">
                   <table className="table">
                     <thead>
-                      <tr><th>Tanggal</th><th>Bahan</th><th>Supplier</th><th>Qty</th><th>Total</th></tr>
+                      <tr><th>Tanggal</th><th>Bahan</th><th>Supplier</th><th>Qty</th><th>Total</th><th></th></tr>
                     </thead>
                     <tbody>
                       {pembelian.map((p) => (
@@ -214,6 +232,9 @@ export default function Inventory() {
                           <td>{p.suppliers?.nama || '—'}</td>
                           <td>{p.qty}</td>
                           <td className="text-primary font-bold">{formatRupiah(p.total)}</td>
+                          <td className="text-right">
+                            <button className="btn btn-sm btn-danger" onClick={() => hapusPembelian(p)}>✕</button>
+                          </td>
                         </tr>
                       ))}
                     </tbody>

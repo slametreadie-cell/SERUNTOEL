@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { supabase } from '../utils/supabaseClient'
 import { useAuth } from '../components/AuthProvider'
 import AppLayout from '../components/AppLayout'
+import { logAudit } from '../utils/audit'
 
 const formatRupiah = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
@@ -20,6 +21,30 @@ export default function Pelanggan() {
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
   const [channelFilter, setChannelFilter] = useState('')
+  const [editRow, setEditRow] = useState(null)
+  const [msg, setMsg] = useState('')
+
+  const hapusPelanggan = async (c) => {
+    if (!confirm(`Hapus pelanggan "${c.nama}"?\n\nRiwayat transaksinya tetap tersimpan.`)) return
+    await supabase.from('customers').delete().eq('id', c.id)
+    logAudit({ aksi: 'hapus_pelanggan', user, sheetTarget: 'customers', detail: { nama: c.nama } })
+    setMsg(`✅ Pelanggan ${c.nama} dihapus`)
+    fetchData()
+    setTimeout(() => setMsg(''), 3000)
+  }
+
+  const simpanEditPelanggan = async () => {
+    if (!editRow) return
+    if (!editRow.nama?.trim()) { alert('Nama tidak boleh kosong'); return }
+    await supabase.from('customers').update({
+      nama: editRow.nama.trim(), kontak: editRow.kontak || null, channel: editRow.channel || 'offline',
+    }).eq('id', editRow.id)
+    logAudit({ aksi: 'ubah_pelanggan', user, sheetTarget: 'customers', detail: { nama: editRow.nama } })
+    setMsg('✅ Data pelanggan diperbarui')
+    setEditRow(null)
+    fetchData()
+    setTimeout(() => setMsg(''), 3000)
+  }
 
   const fetchData = useCallback(async () => {
     setLoading(true)
@@ -72,7 +97,39 @@ export default function Pelanggan() {
         </div>
       </div>
 
+      {msg && <div className="alert alert-success">{msg}</div>}
       {error && <div className="alert alert-danger">⚠️ {error}</div>}
+
+      {editRow && (
+        <div className="card" style={{ border: '2px solid var(--primary)' }}>
+          <div className="card-header">
+            <div className="card-title"><span className="nav-icon">✏️</span> Ubah Pelanggan</div>
+            <button className="btn btn-sm btn-outline" onClick={() => setEditRow(null)}>✕</button>
+          </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label className="form-label">Nama</label>
+              <input className="form-control" value={editRow.nama} onChange={(e) => setEditRow({ ...editRow, nama: e.target.value })} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Kontak</label>
+              <input className="form-control" value={editRow.kontak} onChange={(e) => setEditRow({ ...editRow, kontak: e.target.value })} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Channel</label>
+              <select className="form-control" value={editRow.channel} onChange={(e) => setEditRow({ ...editRow, channel: e.target.value })}>
+                <option value="offline">Offline</option>
+                <option value="online">Online</option>
+                <option value="reseller">Reseller</option>
+              </select>
+            </div>
+          </div>
+          <div className="flex gap-2 justify-end">
+            <button className="btn btn-outline" onClick={() => setEditRow(null)}>Batal</button>
+            <button className="btn btn-primary" onClick={simpanEditPelanggan}>💾 Simpan</button>
+          </div>
+        </div>
+      )}
 
       <div className="card" style={{ padding: 0 }}>
         <div className="card-header" style={{ padding: 16 }}>
@@ -92,7 +149,7 @@ export default function Pelanggan() {
           <div className="table-wrap">
             <table className="table">
               <thead>
-                <tr><th>Nama</th><th>Kontak</th><th>Channel</th><th>Transaksi</th><th>Total Belanja</th><th>Terakhir</th></tr>
+                <tr><th>Nama</th><th>Kontak</th><th>Channel</th><th>Transaksi</th><th>Total Belanja</th><th>Terakhir</th><th></th></tr>
               </thead>
               <tbody>
                 {filtered.map((c) => (
@@ -107,6 +164,13 @@ export default function Pelanggan() {
                     <td>{c.total_transaksi || 0}</td>
                     <td className="text-primary font-bold">{formatRupiah(c.total_belanja)}</td>
                     <td className="text-muted">{formatTanggal(c.last_order)}</td>
+                    <td className="text-right">
+                      <div className="flex gap-1 justify-end">
+                        <button className="btn btn-sm btn-outline"
+                          onClick={() => setEditRow({ id: c.id, nama: c.nama, kontak: c.kontak || '', channel: c.channel || 'offline' })}>✏️</button>
+                        <button className="btn btn-sm btn-danger" onClick={() => hapusPelanggan(c)}>✕</button>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>

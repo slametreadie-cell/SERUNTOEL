@@ -4,12 +4,22 @@ import { useRouter } from 'next/router'
 import { supabase } from '../utils/supabaseClient'
 import { useAuth } from '../components/AuthProvider'
 import AppLayout from '../components/AppLayout'
+import { logAudit } from '../utils/audit'
 
 const formatRupiah = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
 
 export default function ProdukHPP() {
   const { user } = useAuth()
+
+  const hapusProduk = async (row, e) => {
+    if (e) e.stopPropagation()
+    if (!confirm(`Hapus produk "${row.nama_produk}"?\n\nTindakan ini tidak bisa dibatalkan.`)) return
+    const { error } = await supabase.from('products').delete().eq('id', row.id)
+    if (error) { alert('Gagal menghapus: ' + error.message); return }
+    logAudit({ aksi: 'hapus_produk', user, sheetTarget: 'products', detail: { nama: row.nama_produk } })
+    fetchData()
+  }
   const router = useRouter()
   const [produk, setProduk] = useState([])
   const [kategori, setKategori] = useState([])
@@ -168,6 +178,7 @@ export default function ProdukHPP() {
                   <th>Harga Jual</th>
                   <th>Margin</th>
                   <th>Stok</th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
@@ -179,6 +190,10 @@ export default function ProdukHPP() {
                     <td className="text-primary font-bold">{formatRupiah(p.harga_jual)}</td>
                     <td>{Math.round(p.margin || 0)}%</td>
                     <td className={p.stok_produk <= 5 ? 'text-danger font-bold' : ''}>{p.stok_produk}</td>
+                    <td className="text-right">
+                      <button className="btn btn-sm btn-danger" title="Hapus produk"
+                        onClick={(e) => hapusProduk(p, e)}>✕</button>
+                    </td>
                   </tr>
                 ))}
               </tbody>

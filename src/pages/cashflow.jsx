@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { supabase } from '../utils/supabaseClient'
 import { useAuth } from '../components/AuthProvider'
 import AppLayout from '../components/AppLayout'
+import { logAudit } from '../utils/audit'
 
 const formatRupiah = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
@@ -18,6 +19,32 @@ export default function Cashflow() {
   const [filterJenis, setFilterJenis] = useState('')
   const [filterBulan, setFilterBulan] = useState('')
   const [search, setSearch] = useState('')
+  const [editRow, setEditRow] = useState(null)
+  const [msg, setMsg] = useState('')
+
+  const hapusCatatan = async (d) => {
+    if (!confirm(`Hapus catatan "${d.keterangan}"?`)) return
+    await supabase.from('cashflow').delete().eq('id', d.id)
+    logAudit({ aksi: 'hapus_cashflow', user, sheetTarget: 'cashflow', detail: { keterangan: d.keterangan, jumlah: d.jumlah } })
+    setMsg('✅ Catatan dihapus')
+    fetchData()
+    setTimeout(() => setMsg(''), 3000)
+  }
+
+  const simpanEditCatatan = async () => {
+    if (!editRow) return
+    const jumlah = Number(editRow.jumlah)
+    if (!jumlah || jumlah <= 0) { alert('Jumlah harus lebih dari 0'); return }
+    await supabase.from('cashflow').update({
+      tanggal: editRow.tanggal, keterangan: editRow.keterangan,
+      kategori: editRow.kategori, jenis: editRow.jenis, jumlah,
+    }).eq('id', editRow.id)
+    logAudit({ aksi: 'ubah_cashflow', user, sheetTarget: 'cashflow', detail: { keterangan: editRow.keterangan } })
+    setMsg('✅ Catatan diperbarui')
+    setEditRow(null)
+    fetchData()
+    setTimeout(() => setMsg(''), 3000)
+  }
 
   const fetchData = useCallback(async () => {
     setLoading(true)
@@ -89,7 +116,48 @@ export default function Cashflow() {
         </div>
       </div>
 
+      {msg && <div className="alert alert-success">{msg}</div>}
       {error && <div className="alert alert-danger">⚠️ {error}</div>}
+
+      {editRow && (
+        <div className="card" style={{ border: '2px solid var(--primary)' }}>
+          <div className="card-header">
+            <div className="card-title"><span className="nav-icon">✏️</span> Ubah Catatan</div>
+            <button className="btn btn-sm btn-outline" onClick={() => setEditRow(null)}>✕</button>
+          </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label className="form-label">Tanggal</label>
+              <input className="form-control" type="date" value={(editRow.tanggal || '').slice(0,10)} onChange={(e) => setEditRow({ ...editRow, tanggal: e.target.value })} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Jenis</label>
+              <select className="form-control" value={editRow.jenis} onChange={(e) => setEditRow({ ...editRow, jenis: e.target.value })}>
+                <option value="masuk">Masuk</option>
+                <option value="keluar">Keluar</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Jumlah (Rp)</label>
+              <input className="form-control" type="number" value={editRow.jumlah} onChange={(e) => setEditRow({ ...editRow, jumlah: e.target.value })} />
+            </div>
+          </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label className="form-label">Kategori</label>
+              <input className="form-control" value={editRow.kategori || ''} onChange={(e) => setEditRow({ ...editRow, kategori: e.target.value })} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Keterangan</label>
+              <input className="form-control" value={editRow.keterangan || ''} onChange={(e) => setEditRow({ ...editRow, keterangan: e.target.value })} />
+            </div>
+          </div>
+          <div className="flex gap-2 justify-end">
+            <button className="btn btn-outline" onClick={() => setEditRow(null)}>Batal</button>
+            <button className="btn btn-primary" onClick={simpanEditCatatan}>💾 Simpan</button>
+          </div>
+        </div>
+      )}
 
       {/* Daftar transaksi */}
       <div className="card" style={{ padding: 0 }}>
@@ -110,7 +178,7 @@ export default function Cashflow() {
           <div className="table-wrap">
             <table className="table">
               <thead>
-                <tr><th>Tanggal</th><th>Keterangan</th><th>Kategori</th><th>Jenis</th><th>Jumlah</th></tr>
+                <tr><th>Tanggal</th><th>Keterangan</th><th>Kategori</th><th>Jenis</th><th>Jumlah</th><th></th></tr>
               </thead>
               <tbody>
                 {filtered.map((d) => (
@@ -125,6 +193,13 @@ export default function Cashflow() {
                     </td>
                     <td className={`font-bold ${d.jenis === 'masuk' ? 'text-success' : 'text-danger'}`}>
                       {d.jenis === 'masuk' ? '+' : '−'}{formatRupiah(d.jumlah)}
+                    </td>
+                    <td className="text-right">
+                      <div className="flex gap-1 justify-end">
+                        <button className="btn btn-sm btn-outline"
+                          onClick={() => setEditRow({ id: d.id, tanggal: d.tanggal, keterangan: d.keterangan, kategori: d.kategori, jenis: d.jenis, jumlah: d.jumlah })}>✏️</button>
+                        <button className="btn btn-sm btn-danger" onClick={() => hapusCatatan(d)}>✕</button>
+                      </div>
                     </td>
                   </tr>
                 ))}

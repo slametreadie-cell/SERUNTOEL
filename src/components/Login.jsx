@@ -5,22 +5,33 @@ import { useRouter } from 'next/router'
 export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [lihatPassword, setLihatPassword] = useState(false)
+  const [capsLock, setCapsLock] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [tema, setTema] = useState('light')
   const { signIn } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
     const saved = localStorage.getItem('seruntul-theme') || 'light'
+    setTema(saved)
     document.documentElement.setAttribute('data-theme', saved)
   }, [])
+
+  const toggleTema = () => {
+    const next = tema === 'light' ? 'dark' : 'light'
+    setTema(next)
+    document.documentElement.setAttribute('data-theme', next)
+    localStorage.setItem('seruntul-theme', next)
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
     setLoading(true)
 
-    const { error } = await signIn(email, password)
+    const { error } = await signIn(email.trim(), password)
 
     if (error) {
       setError(
@@ -28,24 +39,34 @@ export default function Login() {
           ? 'Email atau password salah. Coba lagi.'
           : error.message
       )
+      setLoading(false)
     } else {
       router.push('/dashboard')
     }
-
-    setLoading(false)
   }
 
   return (
     <div className="login-wrap">
+      <button className="theme-toggle login-theme" onClick={toggleTema} title="Ganti tema" type="button">
+        {tema === 'light' ? '🌙' : '☀️'}
+      </button>
+
       <div className="login-card">
         <div className="login-brand">
-          <div className="login-logo">🐟</div>
-          <h1>Seruntul</h1>
-          <p>Entrepreneur Business Suite</p>
+          <div className="login-logo">S</div>
+          <div>
+            <h1>Seruntul</h1>
+            <p>Business Management</p>
+          </div>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          {error && <div className="alert alert-danger">{error}</div>}
+        <form onSubmit={handleSubmit} noValidate>
+          {error && (
+            <div className="alert alert-danger" role="alert">
+              <span>⚠️</span>
+              <span>{error}</span>
+            </div>
+          )}
 
           <div className="form-group">
             <label className="form-label" htmlFor="email">Email</label>
@@ -54,6 +75,7 @@ export default function Login() {
               name="email"
               type="email"
               autoComplete="username"
+              autoFocus
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -64,26 +86,41 @@ export default function Login() {
 
           <div className="form-group">
             <label className="form-label" htmlFor="password">Password</label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="form-control"
-              placeholder="••••••••"
-            />
+            <div className="pw-wrap">
+              <input
+                id="password"
+                name="password"
+                type={lihatPassword ? 'text' : 'password'}
+                autoComplete="current-password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                onKeyUp={(e) => setCapsLock(e.getModifierState && e.getModifierState('CapsLock'))}
+                onKeyDown={(e) => setCapsLock(e.getModifierState && e.getModifierState('CapsLock'))}
+                className="form-control"
+                placeholder="Masukkan password"
+              />
+              <button
+                type="button"
+                className="pw-toggle"
+                onClick={() => setLihatPassword((v) => !v)}
+                aria-label={lihatPassword ? 'Sembunyikan password' : 'Lihat password'}
+                title={lihatPassword ? 'Sembunyikan password' : 'Lihat password'}
+                tabIndex={-1}
+              >
+                {lihatPassword ? '🙈' : '👁️'}
+              </button>
+            </div>
+            {capsLock && <div className="caps-warn">⚠️ Caps Lock sedang aktif</div>}
           </div>
 
-          <button type="submit" disabled={loading} className="btn btn-primary btn-block">
+          <button type="submit" disabled={loading} className="btn btn-primary btn-block login-btn">
             {loading ? <><span className="spinner" /> Masuk...</> : 'Masuk'}
           </button>
         </form>
 
         <div className="login-footer">
-          <p>Belum punya akun? Hubungi admin untuk pendaftaran.</p>
+          Belum punya akun? Hubungi pemilik usaha untuk didaftarkan.
         </div>
       </div>
 
@@ -94,37 +131,52 @@ export default function Login() {
           align-items: center;
           justify-content: center;
           padding: 24px;
-          background:
-            radial-gradient(circle at 15% 20%, rgba(13,148,136,.12), transparent 40%),
-            radial-gradient(circle at 85% 80%, rgba(217,119,6,.10), transparent 40%),
-            var(--bg);
+          background: var(--bg);
         }
+        .login-theme { position: fixed; top: 16px; right: 16px; }
+
         .login-card {
           width: 100%;
-          max-width: 400px;
+          max-width: 372px;
           background: var(--card);
           border: 1px solid var(--border);
-          border-radius: 20px;
-          padding: 40px 32px;
-          box-shadow: var(--shadow-xl);
+          border-radius: var(--radius);
+          padding: 28px 24px;
         }
-        .login-brand { text-align: center; margin-bottom: 28px; }
+
+        .login-brand {
+          display: flex; align-items: center; gap: 12px;
+          margin-bottom: 22px; padding-bottom: 18px;
+          border-bottom: 1px solid var(--border);
+        }
         .login-logo {
-          width: 64px; height: 64px; margin: 0 auto 16px;
-          background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-          border-radius: 18px;
+          width: 40px; height: 40px; flex-shrink: 0;
+          background: var(--primary);
+          border-radius: var(--radius-sm);
           display: flex; align-items: center; justify-content: center;
-          font-size: 32px;
-          box-shadow: 0 8px 24px rgba(13,148,136,.35);
+          color: #fff; font-size: 19px; font-weight: 600;
         }
-        .login-brand h1 {
-          font-family: 'Plus Jakarta Sans', sans-serif;
-          font-size: 26px; font-weight: 800; letter-spacing: -.5px;
+        .login-brand h1 { font-size: 17px; font-weight: 600; letter-spacing: -.2px; line-height: 1.2; }
+        .login-brand p { color: var(--muted); font-size: 12px; margin-top: 1px; }
+
+        .pw-wrap { position: relative; }
+        .pw-wrap .form-control { padding-right: 42px; }
+        .pw-toggle {
+          position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+          width: 30px; height: 30px; border-radius: 5px;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 14px; opacity: .65;
         }
-        .login-brand p { color: var(--muted); font-size: 13px; margin-top: 2px; }
-        .login-footer { text-align: center; margin-top: 24px; color: var(--muted); font-size: 12.5px; }
-        @media (min-width: 640px) {
-          .login-card { padding: 48px 40px; }
+        .pw-toggle:hover { opacity: 1; background: var(--card-alt); }
+
+        .caps-warn { font-size: 11.5px; color: var(--warning); margin-top: 5px; }
+
+        .login-btn { padding: 10px; font-size: 13.5px; margin-top: 4px; }
+
+        .login-footer {
+          text-align: center; margin-top: 20px; padding-top: 16px;
+          border-top: 1px solid var(--border);
+          color: var(--muted); font-size: 12px; line-height: 1.5;
         }
       `}</style>
     </div>
