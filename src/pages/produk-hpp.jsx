@@ -112,6 +112,7 @@ export default function ProdukHPP() {
           <div className="flex items-center gap-2">
             <button className={`btn btn-sm ${view === 'grid' ? 'btn-primary' : 'btn-outline'}`} onClick={() => setView('grid')}>▦</button>
             <button className={`btn btn-sm ${view === 'table' ? 'btn-primary' : 'btn-outline'}`} onClick={() => setView('table')}>☰</button>
+            <Link href="/produk-hpp/duplikat" className="btn btn-outline">📄 Duplikat</Link>
             <Link href="/produk-hpp/baru" className="btn btn-primary">＋ Produk Baru</Link>
           </div>
         </div>

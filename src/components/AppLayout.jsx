@@ -18,18 +18,37 @@ const NAV_GROUPS = [
     label: 'Manajemen',
     items: [
       { emoji: '📦', title: 'Inventory', href: '/inventory' },
+      { emoji: '📋', title: 'Stok & Opname', href: '/inventory/stok' },
+      { emoji: '⏳', title: 'Produk Kadaluarsa', href: '/gudang/kadaluarsa' },
+      { emoji: '🗑️', title: 'Waste Log', href: '/gudang/waste' },
       { emoji: '👥', title: 'Pelanggan', href: '/customers' },
       { emoji: '💎', title: 'Loyalty & Member', href: '/loyalty' },
       { emoji: '🤝', title: 'Reseller', href: '/reseller' },
       { emoji: '🧾', title: 'Produk & HPP', href: '/produk-hpp' },
+      { emoji: '📄', title: 'Duplikat Produk', href: '/produk-hpp/duplikat' },
       { emoji: '🍲', title: 'Resep Produksi', href: '/produksi' },
+      { emoji: '✅', title: 'QC Checklist', href: '/qc' },
+      { emoji: '🥗', title: 'Label Gizi', href: '/label-gizi' },
       { emoji: '🏭', title: 'Supplier', href: '/suppliers' },
+    ],
+  },
+  {
+    label: 'Pesanan',
+    items: [
+      { emoji: '📅', title: 'Pre-Order', href: '/preorder' },
+    ],
+  },
+  {
+    label: 'SDM',
+    items: [
+      { emoji: '👤', title: 'Karyawan & Absensi', href: '/karyawan' },
     ],
   },
   {
     label: 'Keuangan',
     items: [
       { emoji: '💰', title: 'Cashflow', href: '/cashflow' },
+      { emoji: '📥', title: 'Hutang & Piutang', href: '/keuangan/hutang' },
       { emoji: '📈', title: 'Laporan', href: '/laporan' },
       { emoji: '🎯', title: 'Forecast & Simulasi', href: '/forecast' },
     ],
