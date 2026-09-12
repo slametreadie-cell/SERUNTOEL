@@ -37,3 +37,6 @@ run_migration.js
 verify_tables.js
 
 create_bucket.js
+
+set_storage_policy.js
+run_storage_policy.js
