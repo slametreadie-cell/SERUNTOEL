@@ -9,15 +9,23 @@ import {
   parseLoyaltyConfig, TIER_DEFAULT, TIER_EMOJI,
   hitungPoin, nilaiPoin, tierDari,
 } from '../utils/loyalty'
+import Icon from '../components/Icons'
+import { SkeletonRows, EmptyBlock } from '../components/DashboardWidgets'
 
 const formatRupiah = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
 
 const METODE = [
-  { key: 'cash', label: '💵 Tunai' },
-  { key: 'qris', label: '📱 QRIS' },
-  { key: 'transfer', label: '🏦 Transfer' },
-  { key: 'ewallet', label: '👛 E-Wallet' },
+  { key: 'cash', label: 'Tunai', icon: 'banknote' },
+  { key: 'qris', label: 'QRIS', icon: 'pulse' },
+  { key: 'transfer', label: 'Transfer', icon: 'trendingUp' },
+  { key: 'ewallet', label: 'E-Wallet', icon: 'wallet' },
+]
+
+const CHANNEL = [
+  { k: 'offline', l: 'Offline', icon: 'dashboard' },
+  { k: 'online', l: 'Online', icon: 'orbit' },
+  { k: 'reseller', l: 'Reseller', icon: 'handshake' },
 ]
 
 export default function POS() {
@@ -414,15 +422,27 @@ export default function POS() {
     <AppLayout
       title="POS Kasir"
       subtitle="Transaksi penjualan cepat"
-      actions={<Link href="/kasir/tutup" className="btn btn-outline btn-sm">🔒 Tutup Kas</Link>}
+      actions={
+        <Link href="/kasir/tutup" className="btn btn-outline btn-sm">
+          <Icon name="lock" size={15} />
+          <span className="hide-mobile">Tutup Kas</span>
+        </Link>
+      }
     >
-      {error && <div className="alert alert-danger">⚠️ {error}</div>}
+      {error && (
+        <div className="alert alert-danger" role="alert">
+          <Icon name="alert" size={16} />
+          {error}
+        </div>
+      )}
 
       {/* Notifikasi sukses */}
       {sukses && (
         <div className="alert alert-success" style={{ position: 'sticky', top: 70, zIndex: 20, boxShadow: 'var(--shadow-lg)' }}>
           <div className="flex-1">
-            <b>✅ Transaksi berhasil!</b><br />
+            <b className="flex items-center gap-2">
+              <Icon name="checkSquare" size={16} /> Transaksi berhasil!
+            </b>
             <span className="text-sm">{sukses.id}</span>
             {sukses.poin_didapat > 0 && <><br /><span className="text-sm">Poin +{sukses.poin_didapat} (total {sukses.total_poin})</span></>}
           </div>
@@ -431,8 +451,13 @@ export default function POS() {
             {sukses.metode === 'cash' && <div className="text-sm">Kembalian: {formatRupiah(sukses.kembalian)}</div>}
           </div>
           <div className="flex gap-2">
-            <button className="btn btn-sm btn-primary" onClick={() => cetak(sukses)}>🖨️ Struk</button>
-            <button className="btn btn-sm btn-outline" onClick={() => setSukses(null)}>✕</button>
+            <button className="btn btn-sm btn-primary" onClick={() => cetak(sukses)} aria-label="Cetak struk">
+              <Icon name="receipt" size={14} />
+              <span className="hide-mobile">Struk</span>
+            </button>
+            <button className="btn btn-sm btn-outline" onClick={() => setSukses(null)} aria-label="Tutup notifikasi">
+              <Icon name="close" size={14} />
+            </button>
           </div>
         </div>
       )}
@@ -441,7 +466,11 @@ export default function POS() {
         {/* ===== KIRI: Katalog ===== */}
         <div className="card pos-katalog" style={{ padding: 16 }}>
           <div className="flex gap-2 mb-3">
-            <input className="form-control" placeholder="🔍 Cari produk..." value={search} onChange={(e) => setSearch(e.target.value)} />
+            <div className="search-wrap">
+              <Icon name="search" size={15} className="search-icon" />
+              <input className="form-control" placeholder="Cari produk..." value={search}
+                onChange={(e) => setSearch(e.target.value)} aria-label="Cari produk" />
+            </div>
             <select className="form-control" style={{ maxWidth: 160 }} value={kategori} onChange={(e) => setKategori(e.target.value)}>
               <option value="">Semua</option>
               {kategoriList.map((k) => <option key={k} value={k}>{k}</option>)}
@@ -449,13 +478,25 @@ export default function POS() {
           </div>
 
           {loading ? (
-            <p className="text-muted text-center">Memuat produk...</p>
-          ) : produkFiltered.length === 0 ? (
-            <div className="empty-state">
-              <div className="nav-icon" style={{ fontSize: 40 }}>🛒</div>
-              <h3>Belum ada produk</h3>
-              <p className="text-sm">Tambahkan produk di menu Produk & HPP dulu.</p>
+            <div className="pos-grid">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} aria-hidden="true">
+                  <div className="skeleton" style={{ height: 80, borderRadius: 6 }} />
+                  <div className="skeleton skeleton-text" style={{ width: '75%', marginTop: 8 }} />
+                  <div className="skeleton skeleton-text" style={{ width: '45%' }} />
+                </div>
+              ))}
             </div>
+          ) : produkFiltered.length === 0 ? (
+            <EmptyBlock
+              icon="box"
+              title={search || kategori ? 'Produk tidak ditemukan' : 'Belum ada produk'}
+              message={
+                search || kategori
+                  ? 'Coba kata kunci lain atau ganti kategori.'
+                  : 'Tambahkan produk di menu Produk & HPP dulu.'
+              }
+            />
           ) : (
             <div className="pos-grid">
               {produkFiltered.map((p) => {
@@ -463,7 +504,11 @@ export default function POS() {
                 return (
                   <button key={p.id} className={`pos-produk ${habis ? 'pos-habis' : ''}`} onClick={() => addToCart(p)} disabled={habis}>
                     <div className="pos-produk-img">
-                      {p.foto_url ? <img src={p.foto_url} alt={p.nama_produk} /> : <span>🍱</span>}
+                      {p.foto_url ? (
+                        <img src={p.foto_url} alt="" loading="lazy" />
+                      ) : (
+                        <Icon name="box" size={26} />
+                      )}
                     </div>
                     <div className="pos-produk-info">
                       <div className="pos-produk-nama">{p.nama_produk}</div>
@@ -479,26 +524,26 @@ export default function POS() {
 
         {/* ===== KANAN: Keranjang & Pembayaran ===== */}
         <div className="card pos-keranjang" style={{ padding: 16 }}>
-          <div className="card-title mb-3"><span className="nav-icon">🧺</span> Keranjang ({cart.length})</div>
+          <div className="card-title mb-3">
+            <Icon name="cart" size={16} /> Keranjang ({cart.length})
+          </div>
 
           {/* Channel penjualan */}
           <div className="form-group">
             <label className="form-label">Channel</label>
             <div className="channel-grid">
-              {[
-                { k: 'offline', l: '🏪 Offline' },
-                { k: 'online', l: '🌐 Online' },
-                { k: 'reseller', l: `📦 Reseller (-${diskonReseller}%)` },
-              ].map((c) => (
-                <button key={c.k} type="button" className={`metode-btn ${channel === c.k ? 'active' : ''}`} onClick={() => setChannel(c.k)}>
-                  {c.l}
+              {CHANNEL.map((c) => (
+                <button key={c.k} type="button" className={`metode-btn ${channel === c.k ? 'active' : ''}`}
+                  onClick={() => setChannel(c.k)} aria-pressed={channel === c.k}>
+                  <Icon name={c.icon} size={14} />
+                  {c.k === 'reseller' ? `Reseller -${diskonReseller}%` : c.l}
                 </button>
               ))}
             </div>
           </div>
 
           {cart.length === 0 ? (
-            <div className="text-center text-muted py-4">Keranjang kosong.<br /><span className="text-sm">Klik produk untuk menambahkan.</span></div>
+            <EmptyBlock icon="cart" title="Keranjang kosong" message="Klik produk di kiri untuk menambahkan." />
           ) : (
             <div className="cart-list">
               {cart.map((i) => (
@@ -508,10 +553,12 @@ export default function POS() {
                     <div className="text-sm text-muted">{formatRupiah(i.harga)} × {i.qty}</div>
                   </div>
                   <div className="cart-item-actions">
-                    <button className="qty-btn" onClick={() => updateQty(i.id, -1)}>−</button>
+                    <button className="qty-btn" onClick={() => updateQty(i.id, -1)} aria-label={`Kurangi ${i.nama}`}>−</button>
                     <span className="font-bold">{i.qty}</span>
-                    <button className="qty-btn" onClick={() => updateQty(i.id, 1)}>＋</button>
-                    <button className="qty-btn qty-del" onClick={() => removeItem(i.id)}>✕</button>
+                    <button className="qty-btn" onClick={() => updateQty(i.id, 1)} aria-label={`Tambah ${i.nama}`}>+</button>
+                    <button className="qty-btn qty-del" onClick={() => removeItem(i.id)} aria-label={`Hapus ${i.nama}`}>
+                      <Icon name="trash" size={13} />
+                    </button>
                   </div>
                   <div className="font-bold text-primary" style={{ fontSize: 13 }}>{formatRupiah(i.harga * i.qty)}</div>
                 </div>
@@ -545,7 +592,13 @@ export default function POS() {
               <button type="button" className="btn btn-outline btn-sm" onClick={cekVoucher} disabled={cekPod}>
                 {cekPod ? '...' : 'Pakai'}
               </button>
-              {voucher && <button type="button" className="btn btn-sm btn-danger" onClick={() => { setVoucher(null); setVoucherInput(''); setVoucherMsg('') }}>✕</button>}
+              {voucher && (
+                <button type="button" className="btn btn-sm btn-danger"
+                  onClick={() => { setVoucher(null); setVoucherInput(''); setVoucherMsg('') }}
+                  aria-label="Batalkan voucher">
+                  <Icon name="close" size={14} />
+                </button>
+              )}
             </div>
             {voucherMsg && <div className="text-xs mt-1">{voucherMsg}</div>}
             {voucher && diskonVoucher > 0 && <div className="text-sm text-danger font-bold mt-1">−{formatRupiah(diskonVoucher)}</div>}
@@ -583,7 +636,9 @@ export default function POS() {
                 </div>
               )}
               {!member && memberQuery.trim() && memberMsg.includes('belum terdaftar') && (
-                <button type="button" className="btn btn-sm btn-outline mt-2" onClick={buatMemberBaru}>＋ Daftarkan sebagai member</button>
+                <button type="button" className="btn btn-sm btn-outline mt-2" onClick={buatMemberBaru}>
+                  <Icon name="plus" size={14} /> Daftarkan sebagai member
+                </button>
               )}
             </div>
           )}
@@ -608,7 +663,9 @@ export default function POS() {
             <label className="form-label">Metode Pembayaran</label>
             <div className="metode-grid">
               {METODE.map((m) => (
-                <button key={m.key} type="button" className={`metode-btn ${metode === m.key ? 'active' : ''}`} onClick={() => setMetode(m.key)}>
+                <button key={m.key} type="button" className={`metode-btn ${metode === m.key ? 'active' : ''}`}
+                  onClick={() => setMetode(m.key)} aria-pressed={metode === m.key}>
+                  <Icon name={m.icon} size={15} />
                   {m.label}
                 </button>
               ))}
@@ -636,7 +693,15 @@ export default function POS() {
           </div>
 
           <button className="btn btn-primary btn-block" style={{ padding: 14, fontSize: 16 }} onClick={handleCheckout} disabled={saving || cart.length === 0}>
-            {saving ? <><span className="spinner" /> Memproses...</> : `💳 Bayar ${formatRupiah(total)}`}
+            {saving ? (
+              <>
+                <span className="spinner" /> Memproses...
+              </>
+            ) : (
+              <>
+                <Icon name="banknote" size={17} /> Bayar {formatRupiah(total)}
+              </>
+            )}
           </button>
         </div>
       </div>
@@ -644,6 +709,13 @@ export default function POS() {
       <style jsx>{`
         .pos-layout { display: grid; grid-template-columns: 1fr; gap: 16px; }
         @media (min-width: 1024px) { .pos-layout { grid-template-columns: 1.4fr .9fr; align-items: start; } }
+
+        .search-wrap { position: relative; flex: 1; }
+        .search-wrap .form-control { padding-left: 32px; }
+        .search-wrap :global(.search-icon) {
+          position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+          color: var(--muted); pointer-events: none;
+        }
 
         .pos-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
         @media (min-width: 640px) { .pos-grid { grid-template-columns: repeat(3, 1fr); } }
@@ -654,9 +726,13 @@ export default function POS() {
           overflow: hidden; background: var(--card); cursor: pointer;
           transition: all .15s; text-align: left; padding: 0;
         }
-        .pos-produk:hover { transform: translateY(-2px); border-color: var(--primary); box-shadow: var(--shadow-hover); }
-        .pos-produk.pos-habis { opacity: .5; cursor: not-allowed; }
-        .pos-produk-img { height: 80px; background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 32px; }
+        .pos-produk:hover { border-color: var(--primary); background: var(--primary-light); }
+        .pos-produk.pos-habis { opacity: .55; cursor: not-allowed; background: var(--card-alt); }
+        .pos-produk-img {
+          height: 80px; background: var(--card-alt);
+          display: flex; align-items: center; justify-content: center;
+          color: var(--muted); border-bottom: 1px solid var(--border);
+        }
         .pos-produk-img img { width: 100%; height: 100%; object-fit: cover; }
         .pos-produk-info { padding: 8px 10px; }
         .pos-produk-nama { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -677,7 +753,7 @@ export default function POS() {
         .qty-del { color: var(--danger); }
         .qty-del:hover { border-color: var(--danger); }
 
-        .cart-total { margin-top: 12px; padding-top: 12px; border-top: 2px solid var(--border); }
+        .cart-total { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-strong); }
         .baw-row { display: flex; justify-content: space-between; padding: 3px 0; font-size: 13px; }
         .baw-row span { color: var(--muted); }
         .baw-row.total { border-top: 1px solid var(--border); margin-top: 6px; padding-top: 8px; }
@@ -685,11 +761,14 @@ export default function POS() {
 
         .metode-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
         .channel-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
-        .channel-grid .metode-btn { font-size: 11px; padding: 8px 4px; }
+        .channel-grid .metode-btn { font-size: 11px; padding: 8px 4px; gap: 4px; flex-direction: column; }
         .metode-btn {
-          padding: 10px; border: 1.5px solid var(--border); border-radius: var(--radius-sm);
-          font-weight: 600; font-size: 13px; transition: all .15s; background: var(--card);
+          display: flex; align-items: center; justify-content: center; gap: 6px;
+          padding: 10px 6px; border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+          font-weight: 500; font-size: 12.5px; transition: border-color .12s, background .12s, color .12s;
+          background: var(--card); color: var(--muted);
         }
+        .metode-btn:hover { border-color: var(--border-strong); color: var(--text); }
         .metode-btn.active { border-color: var(--primary); background: var(--primary-light); color: var(--primary-dark); }
 
         .diskon-row { display: flex; align-items: center; gap: 8px; }
