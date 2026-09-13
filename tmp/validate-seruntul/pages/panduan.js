@@ -1,0 +1,213 @@
+import { jsx, jsxs } from "react/jsx-runtime";
+import { useState } from "react";
+import Link from "next/link";
+import AppLayout from "../components/AppLayout";
+const TAB = [
+  { k: "umum", l: "\u{1F680} Mulai" },
+  { k: "produk", l: "\u{1F9FE} Produk & HPP" },
+  { k: "kasir", l: "\u{1F3EA} Kasir" },
+  { k: "stok", l: "\u{1F4E6} Stok" },
+  { k: "laporan", l: "\u{1F4C8} Laporan" },
+  { k: "fitur", l: "\u2728 Fitur Lanjutan" },
+  { k: "tips", l: "\u{1F4A1} Tips" }
+];
+const Langkah = ({ n, judul, children, link, linkLabel }) => /* @__PURE__ */ jsxs("div", { className: "step", children: [
+  /* @__PURE__ */ jsx("div", { className: "step-num", children: n }),
+  /* @__PURE__ */ jsxs("div", { className: "flex-1", children: [
+    /* @__PURE__ */ jsx("div", { className: "font-bold", children: judul }),
+    /* @__PURE__ */ jsx("div", { className: "text-sm text-muted", children }),
+    link && /* @__PURE__ */ jsxs(Link, { href: link, className: "btn btn-sm btn-outline mt-2", children: [
+      linkLabel || "Buka",
+      " \u2192"
+    ] })
+  ] })
+] });
+const Poin = ({ q, a }) => /* @__PURE__ */ jsxs("details", { className: "faq", children: [
+  /* @__PURE__ */ jsx("summary", { children: q }),
+  /* @__PURE__ */ jsx("div", { className: "text-sm text-muted", children: a })
+] });
+export default function Panduan() {
+  const [tab, setTab] = useState("umum");
+  return /* @__PURE__ */ jsxs(AppLayout, { title: "Panduan", subtitle: "Cara pakai aplikasi langkah demi langkah", children: [
+    /* @__PURE__ */ jsx("div", { className: "card", style: { padding: 8 }, children: /* @__PURE__ */ jsx("div", { className: "flex flex-wrap gap-2", children: TAB.map((t) => /* @__PURE__ */ jsx("button", { className: `btn btn-sm ${tab === t.k ? "btn-primary" : "btn-outline"}`, onClick: () => setTab(t.k), children: t.l }, t.k)) }) }),
+    tab === "umum" && /* @__PURE__ */ jsxs("div", { className: "card", children: [
+      /* @__PURE__ */ jsx("div", { className: "card-header", children: /* @__PURE__ */ jsxs("div", { className: "card-title", children: [
+        /* @__PURE__ */ jsx("span", { className: "nav-icon", children: "\u{1F680}" }),
+        " Mulai dari Sini"
+      ] }) }),
+      /* @__PURE__ */ jsx("p", { className: "text-sm text-muted mb-3", children: "Ikuti urutan ini agar aplikasi siap dipakai. Perkiraan waktu 15-20 menit." }),
+      /* @__PURE__ */ jsx(Langkah, { n: "1", judul: "Isi identitas toko", link: "/settings", linkLabel: "Pengaturan", children: "Nama toko, alamat, telepon, dan ucapan di struk. Ini akan muncul di setiap struk yang dicetak." }),
+      /* @__PURE__ */ jsx(Langkah, { n: "2", judul: "Buat kategori produk", link: "/settings", linkLabel: "Pengaturan", children: "Kategori dipakai untuk mengelompokkan produk (mis. Makanan, Minuman, Frozen)." }),
+      /* @__PURE__ */ jsx(Langkah, { n: "3", judul: "Catat bahan baku", link: "/inventory", linkLabel: "Inventory", children: "Masukkan bahan yang Anda pakai beserta harga beli. Harga ini dipakai untuk menghitung HPP." }),
+      /* @__PURE__ */ jsx(Langkah, { n: "4", judul: "Buat produk + hitung HPP", link: "/produk-hpp", linkLabel: "Produk & HPP", children: "Tentukan nama, harga jual, dan HPP. HPP bisa dihitung dari resep bahan. Upload foto agar kasir mudah mengenali." }),
+      /* @__PURE__ */ jsx(Langkah, { n: "5", judul: "Takarkan stok awal", link: "/inventory/stok", linkLabel: "Stok & Opname", children: "Hitung barang fisik di gudang, lalu koreksi stok sistem agar sesuai." }),
+      /* @__PURE__ */ jsx(Langkah, { n: "6", judul: "Mulai jualan di POS", link: "/pos", linkLabel: "POS Kasir", children: "Pilih produk \u2192 bayar \u2192 cetak struk. Stok otomatis berkurang." }),
+      /* @__PURE__ */ jsx(Langkah, { n: "7", judul: "Tutup kas setiap akhir shift", link: "/kasir/tutup", linkLabel: "Tutup Kas", children: "Hitung uang laci dan bandingkan dengan catatan sistem. Selisih otomatis dihitung." }),
+      /* @__PURE__ */ jsx("div", { className: "alert alert-info mt-3", children: "\u{1F4A1} Sudah pernah pakai aplikasi versi lama? Data lama tidak otomatis pindah \u2014 masukkan ulang produk dan bahan satu kali, setelah itu semuanya otomatis." })
+    ] }),
+    tab === "produk" && /* @__PURE__ */ jsxs("div", { className: "card", children: [
+      /* @__PURE__ */ jsx("div", { className: "card-header", children: /* @__PURE__ */ jsxs("div", { className: "card-title", children: [
+        /* @__PURE__ */ jsx("span", { className: "nav-icon", children: "\u{1F9FE}" }),
+        " Produk & HPP"
+      ] }) }),
+      /* @__PURE__ */ jsx(Langkah, { n: "1", judul: "Tambahkan bahan dulu", link: "/inventory", linkLabel: "Inventory", children: "Menu Inventory \u2192 tambah bahan. Isi nama, satuan, harga beli, dan supplier. Harga beli terakhir dipakai sebagai HPP bahan." }),
+      /* @__PURE__ */ jsx(Langkah, { n: "2", judul: "Buat resep produk", link: "/produksi", linkLabel: "Resep Produksi", children: "Menu Resep Produksi \u2192 pilih produk \u2192 masukkan bahan & qty. Sistem menjumlahkan biaya bahan per produk." }),
+      /* @__PURE__ */ jsx(Langkah, { n: "3", judul: "Buat produk", link: "/produk-hpp/baru", linkLabel: "Produk Baru", children: "Isi nama, kategori, jumlah produksi, HPP per unit, dan harga jual. Margin dihitung otomatis." }),
+      /* @__PURE__ */ jsx(Langkah, { n: "4", judul: "Produk mirip? Pakai Duplikat", link: "/produk-hpp/duplikat", linkLabel: "Duplikat Produk", children: "Menyalin produk yang sudah ada (termasuk foto) supaya tidak perlu entri dari nol." }),
+      /* @__PURE__ */ jsxs("div", { className: "alert alert-warning", children: [
+        /* @__PURE__ */ jsx("b", { children: "Penting:" }),
+        " HPP harus benar. Semua laporan laba dan diagnosis bisnis bergantung pada angka HPP ini. HPP yang salah membuat laporan rugi terlihat untung."
+      ] })
+    ] }),
+    tab === "kasir" && /* @__PURE__ */ jsxs("div", { className: "card", children: [
+      /* @__PURE__ */ jsx("div", { className: "card-header", children: /* @__PURE__ */ jsxs("div", { className: "card-title", children: [
+        /* @__PURE__ */ jsx("span", { className: "nav-icon", children: "\u{1F3EA}" }),
+        " Panduan Kasir"
+      ] }) }),
+      /* @__PURE__ */ jsx(Langkah, { n: "1", judul: "Buka POS Kasir", link: "/pos", linkLabel: "POS Kasir", children: "Cari produk, lalu klik untuk memasukkan ke keranjang." }),
+      /* @__PURE__ */ jsxs(Langkah, { n: "2", judul: "Atur channel penjualan", children: [
+        "Pilih ",
+        /* @__PURE__ */ jsx("b", { children: "Offline" }),
+        ", ",
+        /* @__PURE__ */ jsx("b", { children: "Online" }),
+        ", atau ",
+        /* @__PURE__ */ jsx("b", { children: "Reseller" }),
+        ". Channel Reseller otomatis memberi diskon (atur besarnya di menu Reseller)."
+      ] }),
+      /* @__PURE__ */ jsxs(Langkah, { n: "3", judul: "Diskon & Voucher", children: [
+        "Ada dua jenis: ",
+        /* @__PURE__ */ jsx("b", { children: "Diskon manual" }),
+        " (persen atau nominal) dan ",
+        /* @__PURE__ */ jsx("b", { children: "Voucher" }),
+        " (masukkan kode lalu klik Pakai). Voucher yang kedaluwarsa akan ditolak otomatis."
+      ] }),
+      /* @__PURE__ */ jsx(Langkah, { n: "4", judul: "Poin pelanggan", link: "/loyalty", linkLabel: "Loyalty", children: "Cari nama member atau daftarkan baru langsung di POS. Member bisa menukar poin jadi potongan harga." }),
+      /* @__PURE__ */ jsx(Langkah, { n: "5", judul: "Bayar & cetak struk", children: "Pilih metode bayar, isi nominal (ada tombol Uang Pas / Rp50rb / Rp100rb), lalu klik Bayar. Struk muncul otomatis \u2014 klik \u{1F5A8}\uFE0F untuk mencetak." }),
+      /* @__PURE__ */ jsx(Langkah, { n: "6", judul: "Tutup kas", link: "/kasir/tutup", linkLabel: "Tutup Kas", children: "Akhir shift: masukkan modal awal dan hasil hitung uang fisik. Sistem menghitung selisih." }),
+      /* @__PURE__ */ jsx(Langkah, { n: "7", judul: "Cari transaksi lama", link: "/kasir", linkLabel: "Riwayat Transaksi", children: "Filter berdasarkan tanggal, metode bayar, atau channel. Bisa cetak ulang struk." }),
+      /* @__PURE__ */ jsxs("div", { className: "alert alert-info", children: [
+        "\u{1F5A8}\uFE0F Untuk mencetak struk, izinkan ",
+        /* @__PURE__ */ jsx("b", { children: "popup" }),
+        " untuk situs ini di browser Anda."
+      ] })
+    ] }),
+    tab === "stok" && /* @__PURE__ */ jsxs("div", { className: "card", children: [
+      /* @__PURE__ */ jsx("div", { className: "card-header", children: /* @__PURE__ */ jsxs("div", { className: "card-title", children: [
+        /* @__PURE__ */ jsx("span", { className: "nav-icon", children: "\u{1F4E6}" }),
+        " Kelola Stok"
+      ] }) }),
+      /* @__PURE__ */ jsx(Langkah, { n: "1", judul: "Catat stok opname rutin", link: "/inventory/stok", linkLabel: "Stok & Opname", children: "Hitung barang fisik, isi hasilnya, sistem mencatat selisih dan alasannya. Lakukan minimal 1x seminggu." }),
+      /* @__PURE__ */ jsx(Langkah, { n: "2", judul: "Catat barang rusak/terbuang", link: "/gudang/waste", linkLabel: "Waste Log", children: "Setiap produk basi atau rusak dicatat di sini. Stok berkurang otomatis dan kerugian dihitung dari HPP." }),
+      /* @__PURE__ */ jsx(Langkah, { n: "3", judul: "Pantau masa simpan", link: "/gudang/kadaluarsa", linkLabel: "Produk Kadaluarsa", children: "Catat batch produksi. Sistem mengingatkan batch yang mendekati kedaluwarsa (\u22642 hari ditandai kritis)." }),
+      /* @__PURE__ */ jsx(Langkah, { n: "4", judul: "Lihat rencana produksi", link: "/forecast-doh", linkLabel: "Forecast & DOH", children: "Menampilkan berapa hari stok akan bertahan dan berapa yang perlu diproduksi agar stok aman." })
+    ] }),
+    tab === "laporan" && /* @__PURE__ */ jsxs("div", { className: "card", children: [
+      /* @__PURE__ */ jsx("div", { className: "card-header", children: /* @__PURE__ */ jsxs("div", { className: "card-title", children: [
+        /* @__PURE__ */ jsx("span", { className: "nav-icon", children: "\u{1F4C8}" }),
+        " Laporan"
+      ] }) }),
+      /* @__PURE__ */ jsx(Langkah, { n: "1", judul: "Laporan Penjualan", link: "/laporan", linkLabel: "Laporan", children: "Omset, laba kotor, produk terlaris, rincian per metode bayar dan channel. Bisa difilter per periode." }),
+      /* @__PURE__ */ jsxs(Langkah, { n: "2", judul: "Laporan Laba Rugi (P&L)", link: "/laba-rugi", linkLabel: "Laba Rugi", children: [
+        "Laporan lengkap: pendapatan \u2212 HPP = laba kotor, dikurangi biaya operasional = ",
+        /* @__PURE__ */ jsx("b", { children: "laba bersih" }),
+        ". Ini laporan paling penting untuk mengetahui apakah bisnis benar-benar untung."
+      ] }),
+      /* @__PURE__ */ jsxs(Langkah, { n: "3", judul: "Diagnosis Bisnis", link: "/diagnosis", linkLabel: "Diagnosis", children: [
+        "Memberi ",
+        /* @__PURE__ */ jsx("b", { children: "skor kesehatan bisnis 0-100" }),
+        " beserta rekomendasi konkret: margin terlalu tipis, produk terlalu dominan, waste tinggi, dan lainnya."
+      ] }),
+      /* @__PURE__ */ jsxs(Langkah, { n: "4", judul: "Export Excel / PDF", children: [
+        "Di halaman Laporan dan Laba Rugi ada tombol ",
+        /* @__PURE__ */ jsx("b", { children: "\u{1F4CA} Excel/CSV" }),
+        " dan ",
+        /* @__PURE__ */ jsx("b", { children: "\u{1F4C4} PDF" }),
+        " untuk menyimpan atau mengirim laporan ke pihak lain."
+      ] })
+    ] }),
+    tab === "fitur" && /* @__PURE__ */ jsxs("div", { className: "card", children: [
+      /* @__PURE__ */ jsx("div", { className: "card-header", children: /* @__PURE__ */ jsxs("div", { className: "card-title", children: [
+        /* @__PURE__ */ jsx("span", { className: "nav-icon", children: "\u2728" }),
+        " Fitur Lanjutan"
+      ] }) }),
+      /* @__PURE__ */ jsx(Langkah, { n: "1", judul: "Program loyalitas & tier", link: "/loyalty", linkLabel: "Loyalty", children: "Atur berapa rupiah per 1 poin dan nilai tukarnya. Member naik tier otomatis (bronze \u2192 platinum) sesuai total belanja, dan tiap tier bisa punya diskon berbeda." }),
+      /* @__PURE__ */ jsx(Langkah, { n: "2", judul: "Pre-Order", link: "/preorder", linkLabel: "Pre-Order", children: "Catat pesanan pelanggan sebelum produksi, lengkap dengan DP dan sisa pembayaran." }),
+      /* @__PURE__ */ jsx(Langkah, { n: "3", judul: "Hutang & Piutang", link: "/keuangan/hutang", linkLabel: "Hutang & Piutang", children: "Catat tagihan ke pelanggan dan kewajiban ke supplier. Bisa bayar bertahap; setiap pembayaran otomatis tercatat di Cashflow." }),
+      /* @__PURE__ */ jsx(Langkah, { n: "4", judul: "QC Checklist", link: "/qc", linkLabel: "QC Checklist", children: "Pemeriksaan kualitas produksi dengan skor kepatuhan. Berguna untuk menjaga standar rasa dan kebersihan." }),
+      /* @__PURE__ */ jsx(Langkah, { n: "5", judul: "Label Gizi", link: "/label-gizi", linkLabel: "Label Gizi", children: "Buat label informasi nilai gizi untuk kemasan produk, siap dicetak." }),
+      /* @__PURE__ */ jsx(Langkah, { n: "6", judul: "Karyawan & Absensi", link: "/karyawan", linkLabel: "Karyawan", children: "Data karyawan, gaji, shift, dan absensi harian. Ada rekap 30 hari per orang." }),
+      /* @__PURE__ */ jsx(Langkah, { n: "7", judul: "Target & Budget", link: "/target", linkLabel: "Target", children: "Tetapkan target omset mingguan, target laba, dan budget operasional. Halaman ini menampilkan % pencapaian real-time." }),
+      /* @__PURE__ */ jsx(Langkah, { n: "8", judul: "Forecast & Simulasi", link: "/forecast", linkLabel: "Simulasi", children: "Uji skenario: kalau harga bahan naik 10%, bagaimana laba Anda? Berguna sebelum menaikkan harga jual." })
+    ] }),
+    tab === "tips" && /* @__PURE__ */ jsxs("div", { className: "card", children: [
+      /* @__PURE__ */ jsx("div", { className: "card-header", children: /* @__PURE__ */ jsxs("div", { className: "card-title", children: [
+        /* @__PURE__ */ jsx("span", { className: "nav-icon", children: "\u{1F4A1}" }),
+        " Tips & Pertanyaan Umum"
+      ] }) }),
+      /* @__PURE__ */ jsx(
+        Poin,
+        {
+          q: "Kenapa laporan laba saya berbeda dari perkiraan?",
+          a: "Penyebab paling umum: HPP belum diisi atau salah. Pastikan setiap produk punya HPP per unit yang benar, dan setiap bahan punya harga beli terbaru. Laba kotor = omset \u2212 (HPP \xD7 qty terjual)."
+        }
+      ),
+      /* @__PURE__ */ jsx(
+        Poin,
+        {
+          q: "Stok tidak cocok dengan barang fisik, bagaimana?",
+          a: "Gunakan menu Stok & Opname. Hitung fisik, masukkan hasilnya, dan sistem akan mengoreksi sekaligus mencatat selisih beserta alasannya. Lakukan rutin supaya laporan tetap akurat."
+        }
+      ),
+      /* @__PURE__ */ jsx(
+        Poin,
+        {
+          q: "Bagaimana memberi harga khusus untuk reseller?",
+          a: "Menu Reseller \u2192 atur 'Diskon Otomatis (%)'. Saat kasir memilih channel Reseller di POS, diskon langsung diterapkan otomatis."
+        }
+      ),
+      /* @__PURE__ */ jsx(
+        Poin,
+        {
+          q: "Pelanggan komplain tidak bisa tukar poin?",
+          a: "Cek di menu Loyalty \u2192 Aturan Poin: pastikan statusnya Aktif, dan minimal poin bisa ditukar sudah terpenuhi. Contoh: min 50 poin, berarti pelanggan butuh minimal 50 poin."
+        }
+      ),
+      /* @__PURE__ */ jsx(
+        Poin,
+        {
+          q: "Struk tidak mau muncul saat diklik?",
+          a: "Browser memblokir popup. Klik ikon popup di address bar dan pilih 'Selalu izinkan' untuk situs ini, lalu klik ulang tombol struk."
+        }
+      ),
+      /* @__PURE__ */ jsx(
+        Poin,
+        {
+          q: "Bisakah dipakai untuk beberapa jenis usaha?",
+          a: "Bisa. Satuan bahan mendukung kg/gram/liter/ml/pcs/pack/ikat, dan harga jual, diskon, serta poin semuanya bisa diatur sendiri. Struktur data tidak terikat pada satu jenis produk."
+        }
+      ),
+      /* @__PURE__ */ jsx(
+        Poin,
+        {
+          q: "Apakah data aman kalau laptop mati?",
+          a: "Ya. Semua data tersimpan di Supabase (cloud), bukan di laptop. Anda bisa lanjut dari perangkat lain dengan login yang sama."
+        }
+      ),
+      /* @__PURE__ */ jsx(
+        Poin,
+        {
+          q: "Berapa sering sebaiknya tutup kas?",
+          a: "Setiap akhir shift atau minimal sekali sehari. Ini membantu mendeteksi selisih uang lebih cepat sebelum menumpuk."
+        }
+      )
+    ] }),
+    /* @__PURE__ */ jsx("style", { jsx: true, children: `
+        .step { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px dashed var(--border); }
+        .step-num { width: 26px; height: 26px; border-radius: 50%; background: var(--primary); color: #fff;
+          display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; flex-shrink: 0; }
+        .faq { border-bottom: 1px solid var(--border); padding: 10px 0; }
+        .faq summary { cursor: pointer; font-weight: 600; font-size: 14px; }
+        .faq > div { padding-top: 6px; }
+      ` })
+  ] });
+}

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from './AuthProvider'
 import { useRouter } from 'next/router'
+import Icon from './Icons'
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -48,7 +49,7 @@ export default function Login() {
   return (
     <div className="login-wrap">
       <button className="theme-toggle login-theme" onClick={toggleTema} title="Ganti tema" type="button">
-        {tema === 'light' ? '🌙' : '☀️'}
+        <Icon name={tema === 'light' ? 'moon' : 'sun'} size={16} />
       </button>
 
       <div className="login-card">
@@ -63,7 +64,7 @@ export default function Login() {
         <form onSubmit={handleSubmit} noValidate>
           {error && (
             <div className="alert alert-danger" role="alert">
-              <span>⚠️</span>
+              <Icon name="alert" size={16} />
               <span>{error}</span>
             </div>
           )}
@@ -106,16 +107,28 @@ export default function Login() {
                 onClick={() => setLihatPassword((v) => !v)}
                 aria-label={lihatPassword ? 'Sembunyikan password' : 'Lihat password'}
                 title={lihatPassword ? 'Sembunyikan password' : 'Lihat password'}
-                tabIndex={-1}
+                aria-pressed={lihatPassword}
               >
-                {lihatPassword ? '🙈' : '👁️'}
+                <Icon name={lihatPassword ? 'eyeOff' : 'eye'} size={16} />
               </button>
             </div>
-            {capsLock && <div className="caps-warn">⚠️ Caps Lock sedang aktif</div>}
+            {capsLock && (
+              <div className="caps-warn" role="status">
+                <Icon name="alert" size={13} /> Caps Lock sedang aktif
+              </div>
+            )}
           </div>
 
           <button type="submit" disabled={loading} className="btn btn-primary btn-block login-btn">
-            {loading ? <><span className="spinner" /> Masuk...</> : 'Masuk'}
+            {loading ? (
+              <>
+                <span className="spinner" /> Masuk...
+              </>
+            ) : (
+              <>
+                <Icon name="logout" size={15} /> Masuk
+              </>
+            )}
           </button>
         </form>
 
@@ -169,7 +182,10 @@ export default function Login() {
         }
         .pw-toggle:hover { opacity: 1; background: var(--card-alt); }
 
-        .caps-warn { font-size: 11.5px; color: var(--warning); margin-top: 5px; }
+        .caps-warn {
+          display: flex; align-items: center; gap: 5px;
+          font-size: 11.5px; color: var(--warning); margin-top: 5px;
+        }
 
         .login-btn { padding: 10px; font-size: 13.5px; margin-top: 4px; }
 

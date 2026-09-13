@@ -247,14 +247,14 @@ export default function Diagnosis() {
         .score-circle[data-grade="A"], .score-circle[data-grade="B"] { border-color: var(--success,#16a34a); }
         .score-circle[data-grade="C"], .score-circle[data-grade="D"] { border-color: var(--warning,#d97706); }
         .score-circle[data-grade="E"] { border-color: var(--danger,#dc3545); }
-        .sc-num { font-size: 34px; font-weight: 800; line-height: 1; }
+        .sc-num { font-size: 34px; font-weight: 600; line-height: 1; }
         .sc-max { font-size: 11px; color: var(--muted); }
-        .score-label { font-size: 22px; font-weight: 800; }
+        .score-label { font-size: 22px; font-weight: 600; }
         .comp-row { display: grid; grid-template-columns: 1fr 90px 40px; gap: 10px; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--border); }
         @media (min-width: 700px) { .comp-row { grid-template-columns: 220px 1fr 40px; } }
         .comp-bar { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
         .comp-fill { height: 100%; border-radius: 4px; transition: width .3s; }
-        .comp-val { text-align: right; font-weight: 700; }
+        .comp-val { text-align: right; font-weight: 600; }
         .rekom { display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px dashed var(--border); }
         .rekom-icon { font-size: 16px; line-height: 1.4; }
       `}</style>

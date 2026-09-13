@@ -5,7 +5,7 @@ export default function Document() {
     <Html lang="id" data-theme="light">
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-        <meta name="theme-color" content="#2563eb" />
+        <meta name="theme-color" content="#0F766E" />
         <meta name="application-name" content="Seruntul" />
         <link rel="manifest" href="/manifest.json" />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />

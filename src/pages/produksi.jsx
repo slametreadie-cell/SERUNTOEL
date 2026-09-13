@@ -214,7 +214,7 @@ export default function Produksi() {
               const items = Array.isArray(r.bahan_baku_json) ? r.bahan_baku_json : []
               const total = items.reduce((s, b) => s + Number(b.qty || 0) * Number(b.harga_satuan || 0), 0)
               return (
-                <div key={r.id} style={{ border: '1px solid var(--border)', borderRadius: 10, padding: 14 }}>
+                <div key={r.id} style={{ border: '1px solid var(--border)', borderRadius: 8, padding: 14 }}>
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>
                       <div className="font-extrabold">{r.nama_produk || '—'}</div>

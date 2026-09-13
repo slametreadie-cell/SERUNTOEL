@@ -15,8 +15,11 @@ export default function DashboardPage() {
 
   if (loading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <p className="text-gray-500">Memuat...</p>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)' }}>
+        <div className="flex items-center gap-3">
+          <span className="spinner" style={{ borderColor: 'rgba(15,118,110,.25)', borderTopColor: 'var(--primary)' }} />
+          <span className="text-muted">Memuat dashboard...</span>
+        </div>
       </div>
     )
   }

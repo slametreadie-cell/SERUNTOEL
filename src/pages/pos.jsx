@@ -659,8 +659,8 @@ export default function POS() {
         .pos-produk-img { height: 80px; background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 32px; }
         .pos-produk-img img { width: 100%; height: 100%; object-fit: cover; }
         .pos-produk-info { padding: 8px 10px; }
-        .pos-produk-nama { font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .pos-produk-harga { font-size: 13px; font-weight: 800; color: var(--primary); }
+        .pos-produk-nama { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .pos-produk-harga { font-size: 13px; font-weight: 600; color: var(--primary); }
 
         .cart-list { display: flex; flex-direction: column; gap: 8px; max-height: 300px; overflow-y: auto; }
         .cart-item {
@@ -670,7 +670,7 @@ export default function POS() {
         .cart-item-actions { display: flex; align-items: center; gap: 6px; }
         .qty-btn {
           width: 26px; height: 26px; border-radius: 6px; border: 1px solid var(--border);
-          display: flex; align-items: center; justify-content: center; font-weight: 700;
+          display: flex; align-items: center; justify-content: center; font-weight: 600;
           background: var(--bg); transition: all .15s;
         }
         .qty-btn:hover { border-color: var(--primary); color: var(--primary); }

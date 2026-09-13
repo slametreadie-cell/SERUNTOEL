@@ -263,7 +263,7 @@ export default function TargetBudget() {
         }
         .pg-bar { height: 10px; background: var(--border); border-radius: 5px; overflow: hidden; }
         .pg-fill { height: 100%; border-radius: 5px; transition: width .3s; }
-        .pg-pct { text-align: right; font-weight: 800; }
+        .pg-pct { text-align: right; font-weight: 600; }
       `}</style>
     </AppLayout>
   )

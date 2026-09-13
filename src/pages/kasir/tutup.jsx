@@ -267,7 +267,7 @@ export default function TutupKas() {
         .rekap { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; background: var(--bg); }
         .rk-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 13px; }
         .rk-row span { color: var(--muted); }
-        .rk-row.sub { border-top: 1px solid var(--border); margin-top: 4px; padding-top: 8px; font-weight: 700; }
+        .rk-row.sub { border-top: 1px solid var(--border); margin-top: 4px; padding-top: 8px; font-weight: 600; }
       `}</style>
     </AppLayout>
   )

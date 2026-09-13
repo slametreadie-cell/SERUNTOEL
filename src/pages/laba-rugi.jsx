@@ -216,9 +216,9 @@ export default function LabaRugi() {
           padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
         .pl-row > span:nth-child(2) { font-weight: 600; min-width: 110px; text-align: right; }
         .pl-row > span:nth-child(3) { min-width: 60px; text-align: right; }
-        .pl-bold { font-weight: 800; }
+        .pl-bold { font-weight: 600; }
         .pl-border { border-top: 2px solid var(--border); border-bottom: none; margin-top: 4px; padding-top: 10px; }
-        .pl-section { font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: .5px;
+        .pl-section { font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing: .5px;
           margin-top: 14px; padding-top: 10px; border-top: 1px dashed var(--border); }
       `}</style>
     </AppLayout>

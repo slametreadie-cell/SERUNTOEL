@@ -281,7 +281,7 @@ export default function QC() {
       <style jsx>{`
         .score-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
           border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; background: var(--bg); margin-bottom: 12px; }
-        .score-val { font-size: 26px; font-weight: 800; }
+        .score-val { font-size: 26px; font-weight: 600; }
         .qc-list { display: flex; flex-direction: column; gap: 6px; }
         .qc-item { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center;
           padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); }
@@ -290,7 +290,7 @@ export default function QC() {
         @media (min-width: 760px) { .qc-item { grid-template-columns: 1fr auto 180px auto; } .qc-label { grid-column: auto; } }
         .qc-btns { display: flex; gap: 4px; }
         .qc-btn { width: 32px; height: 32px; border-radius: 8px; border: 1.5px solid var(--border);
-          font-weight: 800; background: var(--card); transition: all .15s; }
+          font-weight: 600; background: var(--card); transition: all .15s; }
         .qc-btn.sel.ok { border-color: var(--success, #16a34a); background: rgba(22,163,74,.12); color: var(--success, #16a34a); }
         .qc-btn.sel.no { border-color: var(--danger); background: rgba(220,53,69,.12); color: var(--danger); }
         .qc-btn.sel.na { border-color: var(--muted); background: var(--bg); }

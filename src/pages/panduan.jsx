@@ -238,7 +238,7 @@ export default function Panduan() {
       <style jsx>{`
         .step { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px dashed var(--border); }
         .step-num { width: 26px; height: 26px; border-radius: 50%; background: var(--primary); color: #fff;
-          display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; flex-shrink: 0; }
+          display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0; }
         .faq { border-bottom: 1px solid var(--border); padding: 10px 0; }
         .faq summary { cursor: pointer; font-weight: 600; font-size: 14px; }
         .faq > div { padding-top: 6px; }
