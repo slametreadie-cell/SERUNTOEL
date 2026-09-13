@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../utils/supabaseClient'
 import { useAuth } from '../components/AuthProvider'
 import AppLayout from '../components/AppLayout'
+import Icon from '../components/Icons'
+import { StatCard, SkeletonRows, EmptyBlock } from '../components/DashboardWidgets'
 
 const formatRupiah = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
@@ -169,45 +171,47 @@ export default function Laporan() {
         <p className="text-sm text-muted mt-2">{formatTanggal(dari)} — {formatTanggal(sampai)}</p>
       </div>
 
-      {error && <div className="alert alert-danger">⚠️ {error}</div>}
+      {error && (
+        <div className="alert alert-danger" role="alert">
+          <Icon name="alert" size={16} />
+          {error}
+        </div>
+      )}
 
       {loading ? (
-        <p className="text-muted text-center py-4">Memuat laporan...</p>
+        <div className="card">
+          <SkeletonRows rows={6} />
+        </div>
       ) : (
         <>
           {/* Metrics utama */}
           <div className="metrics-grid">
-            <div className="metric-card">
-              <div className="metric-label">Total Omset</div>
-              <div className="metric-value text-primary">{formatRupiah(ringkas.omset)}</div>
-            </div>
-            <div className="metric-card">
-              <div className="metric-label">Total HPP</div>
-              <div className="metric-value text-danger">{formatRupiah(ringkas.hpp)}</div>
-            </div>
-            <div className="metric-card">
-              <div className="metric-label">Laba Kotor</div>
-              <div className={`metric-value ${ringkas.labaKotor >= 0 ? 'text-success' : 'text-danger'}`}>{formatRupiah(ringkas.labaKotor)}</div>
-            </div>
-            <div className="metric-card">
-              <div className="metric-label">Margin</div>
-              <div className="metric-value">{ringkas.marginPersen.toFixed(1)}%</div>
-            </div>
-            <div className="metric-card">
-              <div className="metric-label">Jumlah Transaksi</div>
-              <div className="metric-value">{ringkas.jumlah}</div>
-            </div>
-            <div className="metric-card">
-              <div className="metric-label">Rata-rata / Transaksi</div>
-              <div className="metric-value">{formatRupiah(ringkas.rataRata)}</div>
-            </div>
+            <StatCard label="Total Omset" value={formatRupiah(ringkas.omset)} icon="trendingUp"
+              tone="primary" hint={`${ringkas.jumlah} transaksi`} />
+            <StatCard label="Total HPP" value={formatRupiah(ringkas.hpp)} icon="box"
+              hint="harga pokok penjualan" />
+            <StatCard label="Laba Kotor" value={formatRupiah(ringkas.labaKotor)} icon="barChart"
+              tone={ringkas.labaKotor >= 0 ? 'primary' : 'danger'} hint="omset − HPP" />
+            <StatCard label="Margin" value={`${ringkas.marginPersen.toFixed(1)}%`} icon="target"
+              tone={ringkas.marginPersen >= 20 ? 'primary' : 'warning'}
+              hint={ringkas.marginPersen >= 20 ? 'sehat' : 'tipis'} />
+            <StatCard label="Jumlah Transaksi" value={ringkas.jumlah} icon="receipt"
+              hint="periode ini" />
+            <StatCard label="Rata-rata / Transaksi" value={formatRupiah(ringkas.rataRata)} icon="banknote"
+              hint="nilai keranjang" />
           </div>
 
           {/* Grafik harian */}
           <div className="card">
-            <div className="card-header"><div className="card-title"><span className="nav-icon">📈</span> Omset Harian</div></div>
+            <div className="card-header">
+              <div className="card-title">
+                <Icon name="barChart" size={16} /> Omset Harian
+              </div>
+              <span className="badge badge-neutral">{ringkas.perHari.length} hari</span>
+            </div>
             {ringkas.perHari.length === 0 ? (
-              <p className="text-muted text-sm">Tidak ada data pada periode ini.</p>
+              <EmptyBlock icon="barChart" title="Tidak ada data"
+                message="Belum ada transaksi pada periode yang dipilih." />
             ) : (
               <div style={{ overflowX: 'auto', paddingBottom: 4 }}>
                 <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, minHeight: 160, minWidth: ringkas.perHari.length * 44 }}>
@@ -217,7 +221,7 @@ export default function Laporan() {
                       <div
                         style={{
                           height: Math.max(4, (d.omset / maxHarian) * 110),
-                          background: 'var(--primary, #2563eb)',
+                          background: 'var(--primary)',
                           borderRadius: '4px 4px 0 0',
                         }}
                       />
@@ -232,15 +236,14 @@ export default function Laporan() {
           {/* Produk terlaris */}
           <div className="card" style={{ padding: 0 }}>
             <div className="card-header" style={{ padding: 16 }}>
-              <div className="card-title"><span className="nav-icon">🏆</span> Produk Terlaris</div>
-              <span className="text-sm text-muted">{ringkas.perProduk.length} produk</span>
+              <div className="card-title">
+                <Icon name="gem" size={16} /> Produk Terlaris
+              </div>
+              <span className="badge badge-neutral">{ringkas.perProduk.length} produk</span>
             </div>
             {ringkas.perProduk.length === 0 ? (
-              <div className="empty-state">
-                <div className="nav-icon" style={{ fontSize: 40 }}>📦</div>
-                <h3>Belum ada penjualan</h3>
-                <p className="text-sm">Data produk muncul setelah ada transaksi di POS.</p>
-              </div>
+              <EmptyBlock icon="box" title="Belum ada penjualan"
+                message="Data produk muncul setelah ada transaksi di POS." />
             ) : (
               <div className="table-wrap">
                 <table className="table">
@@ -266,7 +269,9 @@ export default function Laporan() {
           <div className="grid-2">
             <div className="card" style={{ padding: 0 }}>
               <div className="card-header" style={{ padding: 16 }}>
-                <div className="card-title"><span className="nav-icon">💳</span> Metode Bayar</div>
+                <div className="card-title">
+                  <Icon name="banknote" size={16} /> Metode Bayar
+                </div>
               </div>
               {ringkas.perMetode.length === 0 ? (
                 <p className="text-muted text-sm" style={{ padding: 16 }}>Belum ada data.</p>
@@ -290,7 +295,9 @@ export default function Laporan() {
 
             <div className="card" style={{ padding: 0 }}>
               <div className="card-header" style={{ padding: 16 }}>
-                <div className="card-title"><span className="nav-icon">🏪</span> Channel Penjualan</div>
+                <div className="card-title">
+                  <Icon name="orbit" size={16} /> Channel Penjualan
+                </div>
               </div>
               {ringkas.perChannel.length === 0 ? (
                 <p className="text-muted text-sm" style={{ padding: 16 }}>Belum ada data.</p>
@@ -316,7 +323,9 @@ export default function Laporan() {
           {/* Rincian harian */}
           <div className="card" style={{ padding: 0 }}>
             <div className="card-header" style={{ padding: 16 }}>
-              <div className="card-title"><span className="nav-icon">📅</span> Rincian Harian</div>
+              <div className="card-title">
+                <Icon name="calendar" size={16} /> Rincian Harian
+              </div>
             </div>
             {ringkas.perHari.length === 0 ? (
               <p className="text-muted text-sm" style={{ padding: 16 }}>Belum ada data.</p>
