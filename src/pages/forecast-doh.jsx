@@ -3,6 +3,7 @@ import { supabase } from '../utils/supabaseClient'
 import { useAuth } from '../components/AuthProvider'
 import AppLayout from '../components/AppLayout'
 import { exportCSV } from '../utils/export'
+import Icon from '../components/Icons'
 
 const rp = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
@@ -105,7 +106,7 @@ export default function ForecastDOH() {
 
   return (
     <AppLayout title="Forecast & DOH" subtitle="Days on Hand & rekomendasi produksi">
-      {error && <div className="alert alert-danger">⚠️ {error}</div>}
+      {error && <div className="alert alert-danger"> {error}</div>}
 
       <div className="card" style={{ padding: 16 }}>
         <div className="flex flex-wrap items-center gap-3">
@@ -124,7 +125,7 @@ export default function ForecastDOH() {
             <input className="form-control" type="number" value={targetHari} onChange={(e) => setTargetHari(e.target.value)} />
           </div>
           <div className="flex-1"></div>
-          <button className="btn btn-outline" onClick={() => exportCSV(barisCSV, kolom, `forecast-doh_${toISO(new Date())}.csv`)}>📊 Excel/CSV</button>
+          <button className="btn btn-outline" onClick={() => exportCSV(barisCSV, kolom, `forecast-doh_${toISO(new Date())}.csv`)}> Excel/CSV</button>
         </div>
         <p className="text-xs text-muted mt-2">
           <b>DOH (Days on Hand)</b> = berapa hari stok sekarang akan bertahan berdasarkan rata-rata penjualan.
@@ -143,7 +144,7 @@ export default function ForecastDOH() {
 
           {analisis.perluProduksi.length > 0 && (
             <div className="card">
-              <div className="card-header"><div className="card-title"><span className="nav-icon">🏭</span> Rencana Produksi</div></div>
+              <div className="card-header"><div className="card-title"><Icon name="truck" size={16} /> Rencana Produksi</div></div>
               <p className="text-sm text-muted mb-2">Produk berikut perlu diproduksi agar stok mencapai target {targetHari} hari:</p>
               <div className="table-wrap">
                 <table className="table">
@@ -166,12 +167,12 @@ export default function ForecastDOH() {
 
           <div className="card" style={{ padding: 0 }}>
             <div className="card-header" style={{ padding: 16 }}>
-              <div className="card-title"><span className="nav-icon">📈</span> Analisis DOH per Produk</div>
+              <div className="card-title"><Icon name="trendingUp" size={16} /> Analisis DOH per Produk</div>
               <span className="text-sm text-muted">diurutkan dari paling mendesak</span>
             </div>
             {analisis.rows.length === 0 ? (
               <div className="empty-state">
-                <div className="nav-icon" style={{ fontSize: 40 }}>📈</div>
+                <div className="nav-icon" style={{ fontSize: 40 }}></div>
                 <h3>Belum ada produk</h3>
                 <p className="text-sm">Tambahkan produk untuk melihat forecast.</p>
               </div>

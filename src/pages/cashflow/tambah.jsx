@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import { supabase } from '../../utils/supabaseClient'
 import { useAuth } from '../../components/AuthProvider'
 import AppLayout from '../../components/AppLayout'
+import Icon from '../../components/Icons'
 
 const KATEGORI_MASUK = ['Penjualan', 'Modal', 'Hutang', 'Piutang', 'Lainnya']
 const KATEGORI_KELUAR = ['Pembelian Bahan', 'Operasional', 'Gaji', 'Sewa', 'Utilitas', 'Marketing', 'Lainnya']
@@ -57,10 +58,10 @@ export default function TambahCashflow() {
   return (
     <AppLayout title="Catat Transaksi" subtitle="Tambah pemasukan atau pengeluaran">
       <form onSubmit={handleSubmit}>
-        {error && <div className="alert alert-danger">⚠️ {error}</div>}
+        {error && <div className="alert alert-danger"> {error}</div>}
 
         <div className="card" style={{ maxWidth: 560 }}>
-          <div className="card-header"><div className="card-title"><span className="nav-icon">💸</span> Detail Transaksi</div></div>
+          <div className="card-header"><div className="card-title"><Icon name="banknote" size={16} /> Detail Transaksi</div></div>
 
           <div className="form-row">
             <div className="form-group">
@@ -113,7 +114,7 @@ export default function TambahCashflow() {
           <div className="flex gap-2 justify-end mt-3">
             <button type="button" className="btn btn-outline" onClick={() => router.push('/cashflow')}>Batal</button>
             <button type="submit" className="btn btn-primary" disabled={saving}>
-              {saving ? <><span className="spinner" /> Menyimpan...</> : '💾 Simpan'}
+              {saving ? <><span className="spinner" /> Menyimpan...</> : ' Simpan'}
             </button>
           </div>
         </div>

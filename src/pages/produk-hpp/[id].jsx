@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { supabase } from '../../utils/supabaseClient'
 import { useAuth } from '../../components/AuthProvider'
 import AppLayout from '../../components/AppLayout'
+import Icon from '../../components/Icons'
 
 const formatRupiah = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
@@ -47,7 +48,7 @@ export default function ProdukDetail() {
       <AppLayout title="Detail Produk">
         <div className="card">
           <div className="empty-state">
-            <div className="nav-icon" style={{ fontSize: 40 }}>😕</div>
+            <div className="nav-icon" style={{ fontSize: 40 }}></div>
             <h3>{error || 'Produk tidak ditemukan'}</h3>
             <Link href="/produk-hpp" className="btn btn-outline mt-3">← Kembali</Link>
           </div>
@@ -69,7 +70,7 @@ export default function ProdukDetail() {
             {produk.foto_url ? (
               <img src={produk.foto_url} alt={produk.nama_produk} />
             ) : (
-              <div className="foto-placeholder">🍱</div>
+              <div className="foto-placeholder"></div>
             )}
           </div>
           <div className="mt-3">
@@ -89,8 +90,8 @@ export default function ProdukDetail() {
             </div>
           </div>
           <div className="flex gap-2 mt-4">
-            <Link href={`/produk-hpp/baru?id=${produk.id}`} className="btn btn-primary">✏️ Edit Produk</Link>
-            <button className="btn btn-danger" onClick={() => setConfirmDelete(true)}>🗑️ Hapus</button>
+            <Link href={`/produk-hpp/baru?id=${produk.id}`} className="btn btn-primary"> Edit Produk</Link>
+            <button className="btn btn-danger" onClick={() => setConfirmDelete(true)}> Hapus</button>
           </div>
           {confirmDelete && (
             <div className="alert alert-danger mt-3">
@@ -107,7 +108,7 @@ export default function ProdukDetail() {
 
         {/* Kanan: rincian HPP */}
         <div className="card">
-          <div className="card-header"><div className="card-title"><span className="nav-icon">🧮</span> Rincian HPP</div></div>
+          <div className="card-header"><div className="card-title"><Icon name="barChart" size={16} /> Rincian HPP</div></div>
 
           <div className="hpp-summary">
             <div className="hpp-row"><span>Total Bahan Baku</span><b>{formatRupiah(rincian.bahan?.reduce((s, r) => s + r.qty * r.harga, 0) || 0)}</b></div>
@@ -122,7 +123,7 @@ export default function ProdukDetail() {
 
           {rincian.bahan?.length > 0 && (
             <div className="mt-4">
-              <div className="card-title mb-2" style={{ fontSize: 14 }}>📋 Bahan Baku</div>
+              <div className="card-title mb-2" style={{ fontSize: 14 }}> Bahan Baku</div>
               <div className="table-wrap">
                 <table className="table">
                   <thead><tr><th>Nama</th><th>Qty</th><th>Harga</th><th>Subtotal</th></tr></thead>

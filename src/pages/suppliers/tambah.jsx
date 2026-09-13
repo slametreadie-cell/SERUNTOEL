@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import { supabase } from '../../utils/supabaseClient'
 import { useAuth } from '../../components/AuthProvider'
 import AppLayout from '../../components/AppLayout'
+import Icon from '../../components/Icons'
 
 export default function TambahSupplier() {
   const router = useRouter()
@@ -44,10 +45,10 @@ export default function TambahSupplier() {
   return (
     <AppLayout title="Tambah Supplier" subtitle="Daftarkan pemasok baru">
       <form onSubmit={handleSubmit}>
-        {error && <div className="alert alert-danger">⚠️ {error}</div>}
+        {error && <div className="alert alert-danger"> {error}</div>}
 
         <div className="card" style={{ maxWidth: 560 }}>
-          <div className="card-header"><div className="card-title"><span className="nav-icon">🏭</span> Data Supplier</div></div>
+          <div className="card-header"><div className="card-title"><Icon name="truck" size={16} /> Data Supplier</div></div>
 
           <div className="form-group">
             <label className="form-label">Nama Supplier *</label>
@@ -83,7 +84,7 @@ export default function TambahSupplier() {
           <div className="flex gap-2 justify-end mt-3">
             <button type="button" className="btn btn-outline" onClick={() => router.push('/suppliers')}>Batal</button>
             <button type="submit" className="btn btn-primary" disabled={saving}>
-              {saving ? <><span className="spinner" /> Menyimpan...</> : '💾 Simpan'}
+              {saving ? <><span className="spinner" /> Menyimpan...</> : ' Simpan'}
             </button>
           </div>
         </div>

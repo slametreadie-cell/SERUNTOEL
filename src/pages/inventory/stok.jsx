@@ -3,6 +3,7 @@ import { supabase } from '../../utils/supabaseClient'
 import { useAuth } from '../../components/AuthProvider'
 import AppLayout from '../../components/AppLayout'
 import { logAudit } from '../../utils/audit'
+import Icon from '../../components/Icons'
 
 const formatRupiah = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
@@ -82,8 +83,8 @@ export default function StokOpname() {
         detail: { nama: item.nama, stok_lama: item.stok, stok_fisik: fisik, selisih, alasan: opname.alasan || null } })
 
       setMsg(selisih === 0
-        ? `✅ ${item.nama}: stok sudah sesuai`
-        : `✅ ${item.nama}: dikoreksi ${selisih > 0 ? '+' : ''}${selisih} ${item.satuan}`)
+        ? ` ${item.nama}: stok sudah sesuai`
+        : ` ${item.nama}: dikoreksi ${selisih > 0 ? '+' : ''}${selisih} ${item.satuan}`)
       setOpname(null)
       fetchData()
     } catch (e) { setError(e.message) }
@@ -93,7 +94,7 @@ export default function StokOpname() {
   return (
     <AppLayout title="Stok & Opname" subtitle="Cek fisik stok dan koreksi selisih">
       {msg && <div className="alert alert-success">{msg}</div>}
-      {error && <div className="alert alert-danger">⚠️ {error}</div>}
+      {error && <div className="alert alert-danger"> {error}</div>}
 
       <div className="metrics-grid">
         <div className="metric-card"><div className="metric-label">Total Item</div><div className="metric-value text-primary">{stat.total}</div></div>
@@ -106,8 +107,8 @@ export default function StokOpname() {
       {opname && (
         <div className="card" style={{ border: '2px solid var(--primary)' }}>
           <div className="card-header">
-            <div className="card-title"><span className="nav-icon">📋</span> Opname — {opname.item.nama}</div>
-            <button className="btn btn-sm btn-outline" onClick={() => setOpname(null)}>✕</button>
+            <div className="card-title"><Icon name="clipboard" size={16} /> Opname — {opname.item.nama}</div>
+            <button className="btn btn-sm btn-outline" onClick={() => setOpname(null)}><Icon name="close" size={13} /></button>
           </div>
           <div className="text-sm text-muted mb-3">
             Stok tercatat sistem: <b>{opname.item.stok} {opname.item.satuan}</b>
@@ -132,7 +133,7 @@ export default function StokOpname() {
           </div>
           <div className="flex justify-end">
             <button className="btn btn-primary" onClick={simpanOpname} disabled={saving}>
-              {saving ? <><span className="spinner" /> Menyimpan...</> : '💾 Simpan Koreksi'}
+              {saving ? <><span className="spinner" /> Menyimpan...</> : ' Simpan Koreksi'}
             </button>
           </div>
         </div>
@@ -142,20 +143,20 @@ export default function StokOpname() {
         <div className="card-header" style={{ padding: 16 }}>
           <div className="flex flex-wrap gap-2">
             <button className={`btn btn-sm ${tab === 'bahan' ? 'btn-primary' : 'btn-outline'}`} onClick={() => { setTab('bahan'); setOpname(null) }}>
-              🧂 Bahan Baku
+               Bahan Baku
             </button>
             <button className={`btn btn-sm ${tab === 'produk' ? 'btn-primary' : 'btn-outline'}`} onClick={() => { setTab('produk'); setOpname(null) }}>
-              📦 Produk Jadi
+               Produk Jadi
             </button>
           </div>
-          <input className="form-control" style={{ maxWidth: 220 }} placeholder="🔍 Cari..."
+          <input className="form-control" style={{ maxWidth: 220 }} placeholder="Cari..."
             value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
 
         {loading ? <p className="text-muted text-center py-4">Memuat...</p>
           : filtered.length === 0 ? (
             <div className="empty-state">
-              <div className="nav-icon" style={{ fontSize: 40 }}>📋</div>
+              <div className="nav-icon" style={{ fontSize: 40 }}></div>
               <h3>Belum ada {tab === 'bahan' ? 'bahan baku' : 'produk'}</h3>
               <p className="text-sm">Tambahkan {tab === 'bahan' ? 'bahan di menu Inventory' : 'produk di menu Produk & HPP'}.</p>
             </div>
@@ -181,7 +182,7 @@ export default function StokOpname() {
                           </span>
                         </td>
                         <td className="text-right">
-                          <button className="btn btn-sm btn-outline" onClick={() => mulaiOpname(d)}>📋 Opname</button>
+                          <button className="btn btn-sm btn-outline" onClick={() => mulaiOpname(d)}> Opname</button>
                         </td>
                       </tr>
                     )
@@ -195,7 +196,7 @@ export default function StokOpname() {
       {/* Riwayat kartu stok */}
       <div className="card" style={{ padding: 0 }}>
         <div className="card-header" style={{ padding: 16 }}>
-          <div className="card-title"><span className="nav-icon">🗂️</span> Kartu Stok (Mutasi Bahan)</div>
+          <div className="card-title"><span className="nav-icon"></span> Kartu Stok (Mutasi Bahan)</div>
           <span className="text-sm text-muted">{riwayat.length} catatan</span>
         </div>
         {riwayat.length === 0 ? (

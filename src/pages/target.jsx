@@ -3,6 +3,7 @@ import { supabase } from '../utils/supabaseClient'
 import { useAuth } from '../components/AuthProvider'
 import AppLayout from '../components/AppLayout'
 import { logAudit } from '../utils/audit'
+import Icon from '../components/Icons'
 
 const rp = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
@@ -107,7 +108,7 @@ export default function TargetBudget() {
         if (error) throw error
       }
       logAudit({ aksi: 'simpan_target', user, sheetTarget: 'target_budgets', detail: { bulan, target: totalTargetOmset } })
-      setMsg('✅ Target & budget disimpan')
+      setMsg(' Target & budget disimpan')
       fetchData()
     } catch (e) { setError(e.message) }
     finally { setSaving(false); setTimeout(() => setMsg(''), 3000) }
@@ -117,7 +118,7 @@ export default function TargetBudget() {
     if (!confirm(`Hapus target ${bulanLabel(r.bulan)}?`)) return
     await supabase.from('target_budgets').delete().eq('id', r.id)
     logAudit({ aksi: 'hapus_target', user, sheetTarget: 'target_budgets', detail: { bulan: r.bulan } })
-    setMsg('✅ Target dihapus')
+    setMsg(' Target dihapus')
     fetchData()
     setTimeout(() => setMsg(''), 3000)
   }
@@ -136,7 +137,7 @@ export default function TargetBudget() {
   return (
     <AppLayout title="Target & Budget" subtitle="Rencana penjualan & belanja bulanan">
       {msg && <div className="alert alert-success">{msg}</div>}
-      {error && <div className="alert alert-danger">⚠️ {error}</div>}
+      {error && <div className="alert alert-danger"> {error}</div>}
 
       <div className="card" style={{ padding: 16 }}>
         <div className="flex flex-wrap items-center gap-3">
@@ -154,14 +155,14 @@ export default function TargetBudget() {
         <>
           {/* Progres realisasi */}
           <div className="card">
-            <div className="card-header"><div className="card-title"><span className="nav-icon">🎯</span> Realisasi {bulanLabel(bulan)}</div></div>
+            <div className="card-header"><div className="card-title"><Icon name="target" size={16} /> Realisasi {bulanLabel(bulan)}</div></div>
             <Progres label="Omset" nilai={realisasi.omset} target={totalTargetOmset} persen={progres.pOmset} warna="var(--primary,#2563eb)" />
             <Progres label="Laba Bersih" nilai={labaReal} target={targetProfit} persen={progres.pProfit} warna="var(--success,#16a34a)" />
             <Progres label="Biaya Operasional" nilai={realisasi.biayaOp} target={budgetOp} persen={progres.pOp} warna="var(--danger,#dc3545)" />
 
             {budgetOp > 0 && realisasi.biayaOp > budgetOp && (
               <div className="alert alert-warning mt-3">
-                ⚠️ Biaya operasional sudah <b>melebihi budget</b> {rp(realisasi.biayaOp - budgetOp)}. Tinjau pengeluaran.
+                 Biaya operasional sudah <b>melebihi budget</b> {rp(realisasi.biayaOp - budgetOp)}. Tinjau pengeluaran.
               </div>
             )}
             <p className="text-xs text-muted mt-3">
@@ -171,7 +172,7 @@ export default function TargetBudget() {
 
           {/* Form target */}
           <div className="card">
-            <div className="card-header"><div className="card-title"><span className="nav-icon">📝</span> Set Target & Budget</div></div>
+            <div className="card-header"><div className="card-title"><Icon name="sliders" size={16} /> Set Target & Budget</div></div>
 
             <div className="text-sm font-bold mb-2">Target Omset per Minggu</div>
             <div className="form-row">
@@ -210,7 +211,7 @@ export default function TargetBudget() {
 
             <div className="flex justify-end">
               <button className="btn btn-primary" onClick={simpan} disabled={saving}>
-                {saving ? <><span className="spinner" /> Menyimpan...</> : '💾 Simpan Target'}
+                {saving ? <><span className="spinner" /> Menyimpan...</> : ' Simpan Target'}
               </button>
             </div>
           </div>
@@ -218,7 +219,7 @@ export default function TargetBudget() {
           {/* Riwayat */}
           <div className="card" style={{ padding: 0 }}>
             <div className="card-header" style={{ padding: 16 }}>
-              <div className="card-title"><span className="nav-icon">📋</span> Riwayat Target</div>
+              <div className="card-title"><Icon name="clipboard" size={16} /> Riwayat Target</div>
               <span className="text-sm text-muted">{riwayat.length} bulan</span>
             </div>
             {riwayat.length === 0 ? (
@@ -240,7 +241,7 @@ export default function TargetBudget() {
                           <td className="text-right">
                             <div className="flex gap-1 justify-end">
                               <button className="btn btn-sm btn-outline" onClick={() => setBulan((r.bulan||'').slice(0,10))}>Buka</button>
-                              <button className="btn btn-sm btn-danger" onClick={() => hapusTarget(r)}>✕</button>
+                              <button className="btn btn-sm btn-danger" onClick={() => hapusTarget(r)}><Icon name="close" size={13} /></button>
                             </div>
                           </td>
                         </tr>

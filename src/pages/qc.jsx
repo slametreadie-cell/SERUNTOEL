@@ -3,6 +3,7 @@ import { supabase } from '../utils/supabaseClient'
 import { useAuth } from '../components/AuthProvider'
 import AppLayout from '../components/AppLayout'
 import { logAudit } from '../utils/audit'
+import Icon from '../components/Icons'
 
 const hariIni = () => new Date().toISOString().slice(0, 10)
 const tglID = (v) => v ? new Date(v).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'
@@ -21,8 +22,8 @@ const ITEM_DEFAULT = [
 const JENIS = ['Produksi Harian', 'Sanitasi', 'Bahan Baku', 'Kemasan', 'Pengiriman', 'Lainnya']
 
 const RESULT_OPT = [
-  { k: 'ok', l: '✓', cls: 'ok' },
-  { k: 'no', l: '✕', cls: 'no' },
+  { k: 'ok', l: '', cls: 'ok' },
+  { k: 'no', l: '', cls: 'no' },
   { k: 'na', l: '–', cls: 'na' },
 ]
 
@@ -92,10 +93,10 @@ export default function QC() {
         detail: { jenis: form.jenis, ok: ringkas.ok, gagal: ringkas.no, persen: ringkas.persen } })
 
       setMsg(editId
-        ? '✅ Pemeriksaan diperbarui'
+        ? ' Pemeriksaan diperbarui'
         : ringkas.no === 0
-          ? `✅ QC LULUS (${ringkas.persen}% sesuai)`
-          : `⚠️ Tersimpan — ${ringkas.no} item perlu perbaikan`)
+          ? ` QC LULUS (${ringkas.persen}% sesuai)`
+          : ` Tersimpan — ${ringkas.no} item perlu perbaikan`)
       setEditId(null)
       setItems(ITEM_DEFAULT.map((label) => ({ label, hasil: 'ok', catatan: '' })))
       setCatatanAkhir('')
@@ -130,11 +131,11 @@ export default function QC() {
   return (
     <AppLayout title="QC Checklist" subtitle="Kontrol kualitas produksi">
       {msg && <div className="alert alert-success">{msg}</div>}
-      {error && <div className="alert alert-danger">⚠️ {error}</div>}
+      {error && <div className="alert alert-danger"> {error}</div>}
 
       {/* Form */}
       <div className="card">
-        <div className="card-header"><div className="card-title"><span className="nav-icon">✅</span> {editId ? 'Ubah Pemeriksaan' : 'Pemeriksaan Baru'}</div>
+        <div className="card-header"><div className="card-title"><Icon name="checkSquare" size={16} /> {editId ? 'Ubah Pemeriksaan' : 'Pemeriksaan Baru'}</div>
             {editId && <button className="btn btn-sm btn-outline" onClick={() => { setEditId(null); setItems(ITEM_DEFAULT.map((label) => ({ label, hasil: 'ok', catatan: '' }))); setCatatanAkhir('') }}>Batal Edit</button>}</div>
 
         <div className="form-row">
@@ -163,8 +164,8 @@ export default function QC() {
             </div>
           </div>
           <div className="flex gap-2 flex-wrap">
-            <span className="badge badge-success">✓ {ringkas.ok} sesuai</span>
-            <span className="badge badge-danger">✕ {ringkas.no} gagal</span>
+            <span className="badge badge-success"> {ringkas.ok} sesuai</span>
+            <span className="badge badge-danger"> {ringkas.no} gagal</span>
             <span className="badge badge-neutral">– {ringkas.na} n/a</span>
           </div>
         </div>
@@ -182,7 +183,7 @@ export default function QC() {
               </div>
               <input className="form-control qc-note" placeholder="catatan" value={it.catatan}
                 onChange={(e) => setCatatanItem(idx, e.target.value)} />
-              <button type="button" className="btn btn-sm btn-danger" onClick={() => hapusItem(idx)}>✕</button>
+              <button type="button" className="btn btn-sm btn-danger" onClick={() => hapusItem(idx)}><Icon name="close" size={13} /></button>
             </div>
           ))}
         </div>
@@ -202,7 +203,7 @@ export default function QC() {
 
         <div className="flex justify-end">
           <button className="btn btn-primary" onClick={simpan} disabled={saving}>
-            {saving ? <><span className="spinner" /> Menyimpan...</> : editId ? '💾 Perbarui' : '💾 Simpan Pemeriksaan'}
+            {saving ? <><span className="spinner" /> Menyimpan...</> : editId ? ' Perbarui' : ' Simpan Pemeriksaan'}
           </button>
         </div>
       </div>
@@ -210,14 +211,14 @@ export default function QC() {
       {/* Riwayat */}
       <div className="card" style={{ padding: 0 }}>
         <div className="card-header" style={{ padding: 16 }}>
-          <div className="card-title"><span className="nav-icon">📋</span> Riwayat Pemeriksaan</div>
+          <div className="card-title"><Icon name="clipboard" size={16} /> Riwayat Pemeriksaan</div>
           <span className="text-sm text-muted">{data.length} catatan</span>
         </div>
 
         {loading ? <p className="text-muted text-center py-4">Memuat...</p>
           : data.length === 0 ? (
             <div className="empty-state">
-              <div className="nav-icon" style={{ fontSize: 40 }}>✅</div>
+              <div className="nav-icon" style={{ fontSize: 40 }}></div>
               <h3>Belum ada pemeriksaan QC</h3>
               <p className="text-sm">Lakukan pemeriksaan rutin untuk menjaga kualitas.</p>
             </div>
@@ -235,8 +236,8 @@ export default function QC() {
                         <td className="font-bold">{row.jenis || '—'}</td>
                         <td className="text-sm">{row.petugas || '—'}</td>
                         <td>
-                          <span className="badge badge-success">{rk.ok || 0} ✓</span>{' '}
-                          {no > 0 && <span className="badge badge-danger">{no} ✕</span>}
+                          <span className="badge badge-success">{rk.ok || 0} </span>{' '}
+                          {no > 0 && <span className="badge badge-danger">{no} </span>}
                           <span className="badge badge-neutral ml-1">{rk.persen || 0}%</span>
                         </td>
                         <td>
@@ -249,8 +250,8 @@ export default function QC() {
                             <button className="btn btn-sm btn-outline" onClick={() => setDetail(detail?.id === row.id ? null : row)}>
                               {detail?.id === row.id ? 'Tutup' : 'Lihat'}
                             </button>
-                            <button className="btn btn-sm btn-outline" onClick={() => mulaiEdit(row)}>✏️</button>
-                            <button className="btn btn-sm btn-danger" onClick={() => hapus(row)}>✕</button>
+                            <button className="btn btn-sm btn-outline" onClick={() => mulaiEdit(row)}><Icon name="sliders" size={13} /></button>
+                            <button className="btn btn-sm btn-danger" onClick={() => hapus(row)}><Icon name="close" size={13} /></button>
                           </div>
                         </td>
                       </tr>
@@ -267,7 +268,7 @@ export default function QC() {
             {ambilItems(detail).map((it, i) => (
               <div key={i} className="detail-row">
                 <span className={`badge ${it.hasil === 'ok' ? 'badge-success' : it.hasil === 'no' ? 'badge-danger' : 'badge-neutral'}`}>
-                  {it.hasil === 'ok' ? '✓' : it.hasil === 'no' ? '✕' : '–'}
+                  {it.hasil === 'ok' ? '' : it.hasil === 'no' ? '' : '–'}
                 </span>
                 <span className="flex-1">{it.label}</span>
                 {it.catatan && <span className="text-xs text-muted">{it.catatan}</span>}

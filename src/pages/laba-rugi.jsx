@@ -3,6 +3,7 @@ import { supabase } from '../utils/supabaseClient'
 import { useAuth } from '../components/AuthProvider'
 import AppLayout from '../components/AppLayout'
 import { exportCSV, exportPDF } from '../utils/export'
+import Icon from '../components/Icons'
 
 const rp = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
@@ -123,7 +124,7 @@ export default function LabaRugi() {
 
   return (
     <AppLayout title="Laporan Laba Rugi" subtitle="Pendapatan, biaya, dan laba bersih">
-      {error && <div className="alert alert-danger">⚠️ {error}</div>}
+      {error && <div className="alert alert-danger"> {error}</div>}
 
       <div className="card" style={{ padding: 16 }}>
         <div className="flex flex-wrap items-center gap-2">
@@ -148,7 +149,7 @@ export default function LabaRugi() {
         <div className="flex flex-wrap items-center justify-between gap-2 mt-2">
           <span className="text-sm text-muted">Periode {dari} s/d {sampai}</span>
           <div className="flex gap-2">
-            <button className="btn btn-sm btn-outline" onClick={() => exportCSV(barisCSV, kolomCSV, `laba-rugi_${dari}_${sampai}.csv`)}>📊 Excel/CSV</button>
+            <button className="btn btn-sm btn-outline" onClick={() => exportCSV(barisCSV, kolomCSV, `laba-rugi_${dari}_${sampai}.csv`)}> Excel/CSV</button>
             <button className="btn btn-sm btn-outline" onClick={() => exportPDF('Laporan Laba Rugi', kolomCSV, barisCSV, {
               subjudul: `${toko.nama_toko || 'Seruntul'} · ${dari} s/d ${sampai}`,
               ringkasan: [
@@ -157,7 +158,7 @@ export default function LabaRugi() {
                 { label: 'Laba Bersih', value: rp(pl.labaBersih) },
                 { label: 'Margin Bersih', value: pct(pl.marginBersih) },
               ],
-            })}>📄 PDF</button>
+            })}> PDF</button>
           </div>
         </div>
       </div>
@@ -174,7 +175,7 @@ export default function LabaRugi() {
           </div>
 
           <div className="card">
-            <div className="card-header"><div className="card-title"><span className="nav-icon">📑</span> Laporan Laba Rugi</div></div>
+            <div className="card-header"><div className="card-title"><Icon name="fileText" size={16} /> Laporan Laba Rugi</div></div>
             <Row label="PENDAPATAN PENJUALAN" nilai={pl.pendapatan} persen="100%" bold />
             <Baris label="Harga Pokok Penjualan (HPP)" nilai={-pl.hpp} persen={pct(-(pl.hpp / (pl.pendapatan || 1)) * 100)} />
             <Baris label="LABA KOTOR" nilai={pl.labaKotor} persen={pct(pl.marginKotor)} bold border />
@@ -203,7 +204,7 @@ export default function LabaRugi() {
           </div>
 
           <div className="card">
-            <div className="card-header"><div className="card-title"><span className="nav-icon">📊</span> Ringkasan Penjualan</div></div>
+            <div className="card-header"><div className="card-title"><Icon name="barChart" size={16} /> Ringkasan Penjualan</div></div>
             <div className="pl-row"><span>Jumlah Transaksi</span><span>{pl.jumlahTrx}</span><span></span></div>
             <div className="pl-row"><span>Rata-rata per Transaksi</span><span>{rp(pl.rataTrx)}</span><span></span></div>
             <div className="pl-row"><span>Total Item Terjual</span><span>{items.reduce((s, i) => s + Number(i.qty || 0), 0)}</span><span></span></div>

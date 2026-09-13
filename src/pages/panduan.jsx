@@ -1,15 +1,16 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import AppLayout from '../components/AppLayout'
+import Icon from '../components/Icons'
 
 const TAB = [
-  { k: 'umum', l: '🚀 Mulai' },
-  { k: 'produk', l: '🧾 Produk & HPP' },
-  { k: 'kasir', l: '🏪 Kasir' },
-  { k: 'stok', l: '📦 Stok' },
-  { k: 'laporan', l: '📈 Laporan' },
-  { k: 'fitur', l: '✨ Fitur Lanjutan' },
-  { k: 'tips', l: '💡 Tips' },
+  { k: 'umum', l: ' Mulai' },
+  { k: 'produk', l: ' Produk & HPP' },
+  { k: 'kasir', l: ' Kasir' },
+  { k: 'stok', l: ' Stok' },
+  { k: 'laporan', l: ' Laporan' },
+  { k: 'fitur', l: ' Fitur Lanjutan' },
+  { k: 'tips', l: ' Tips' },
 ]
 
 const Langkah = ({ n, judul, children, link, linkLabel }) => (
@@ -45,7 +46,7 @@ export default function Panduan() {
 
       {tab === 'umum' && (
         <div className="card">
-          <div className="card-header"><div className="card-title"><span className="nav-icon">🚀</span> Mulai dari Sini</div></div>
+          <div className="card-header"><div className="card-title"><Icon name="trendingUp" size={16} /> Mulai dari Sini</div></div>
           <p className="text-sm text-muted mb-3">
             Ikuti urutan ini agar aplikasi siap dipakai. Perkiraan waktu 15-20 menit.
           </p>
@@ -72,7 +73,7 @@ export default function Panduan() {
           </Langkah>
 
           <div className="alert alert-info mt-3">
-            💡 Sudah pernah pakai aplikasi versi lama? Data lama tidak otomatis pindah — masukkan ulang produk dan bahan
+             Sudah pernah pakai aplikasi versi lama? Data lama tidak otomatis pindah — masukkan ulang produk dan bahan
             satu kali, setelah itu semuanya otomatis.
           </div>
         </div>
@@ -80,7 +81,7 @@ export default function Panduan() {
 
       {tab === 'produk' && (
         <div className="card">
-          <div className="card-header"><div className="card-title"><span className="nav-icon">🧾</span> Produk & HPP</div></div>
+          <div className="card-header"><div className="card-title"><Icon name="receipt" size={16} /> Produk & HPP</div></div>
           <Langkah n="1" judul="Tambahkan bahan dulu" link="/inventory" linkLabel="Inventory">
             Menu Inventory → tambah bahan. Isi nama, satuan, harga beli, dan supplier. Harga beli terakhir dipakai sebagai HPP bahan.
           </Langkah>
@@ -103,7 +104,7 @@ export default function Panduan() {
 
       {tab === 'kasir' && (
         <div className="card">
-          <div className="card-header"><div className="card-title"><span className="nav-icon">🏪</span> Panduan Kasir</div></div>
+          <div className="card-header"><div className="card-title"><Icon name="dashboard" size={16} /> Panduan Kasir</div></div>
           <Langkah n="1" judul="Buka POS Kasir" link="/pos" linkLabel="POS Kasir">
             Cari produk, lalu klik untuk memasukkan ke keranjang.
           </Langkah>
@@ -120,7 +121,7 @@ export default function Panduan() {
           </Langkah>
           <Langkah n="5" judul="Bayar & cetak struk">
             Pilih metode bayar, isi nominal (ada tombol Uang Pas / Rp50rb / Rp100rb), lalu klik Bayar.
-            Struk muncul otomatis — klik 🖨️ untuk mencetak.
+            Struk muncul otomatis — klik  untuk mencetak.
           </Langkah>
           <Langkah n="6" judul="Tutup kas" link="/kasir/tutup" linkLabel="Tutup Kas">
             Akhir shift: masukkan modal awal dan hasil hitung uang fisik. Sistem menghitung selisih.
@@ -130,14 +131,14 @@ export default function Panduan() {
           </Langkah>
 
           <div className="alert alert-info">
-            🖨️ Untuk mencetak struk, izinkan <b>popup</b> untuk situs ini di browser Anda.
+             Untuk mencetak struk, izinkan <b>popup</b> untuk situs ini di browser Anda.
           </div>
         </div>
       )}
 
       {tab === 'stok' && (
         <div className="card">
-          <div className="card-header"><div className="card-title"><span className="nav-icon">📦</span> Kelola Stok</div></div>
+          <div className="card-header"><div className="card-title"><Icon name="box" size={16} /> Kelola Stok</div></div>
           <Langkah n="1" judul="Catat stok opname rutin" link="/inventory/stok" linkLabel="Stok & Opname">
             Hitung barang fisik, isi hasilnya, sistem mencatat selisih dan alasannya. Lakukan minimal 1x seminggu.
           </Langkah>
@@ -155,7 +156,7 @@ export default function Panduan() {
 
       {tab === 'laporan' && (
         <div className="card">
-          <div className="card-header"><div className="card-title"><span className="nav-icon">📈</span> Laporan</div></div>
+          <div className="card-header"><div className="card-title"><Icon name="trendingUp" size={16} /> Laporan</div></div>
           <Langkah n="1" judul="Laporan Penjualan" link="/laporan" linkLabel="Laporan">
             Omset, laba kotor, produk terlaris, rincian per metode bayar dan channel. Bisa difilter per periode.
           </Langkah>
@@ -168,7 +169,7 @@ export default function Panduan() {
             produk terlalu dominan, waste tinggi, dan lainnya.
           </Langkah>
           <Langkah n="4" judul="Export Excel / PDF">
-            Di halaman Laporan dan Laba Rugi ada tombol <b>📊 Excel/CSV</b> dan <b>📄 PDF</b> untuk menyimpan
+            Di halaman Laporan dan Laba Rugi ada tombol <b> Excel/CSV</b> dan <b> PDF</b> untuk menyimpan
             atau mengirim laporan ke pihak lain.
           </Langkah>
         </div>
@@ -176,7 +177,7 @@ export default function Panduan() {
 
       {tab === 'fitur' && (
         <div className="card">
-          <div className="card-header"><div className="card-title"><span className="nav-icon">✨</span> Fitur Lanjutan</div></div>
+          <div className="card-header"><div className="card-title"><Icon name="orbit" size={16} /> Fitur Lanjutan</div></div>
           <Langkah n="1" judul="Program loyalitas & tier" link="/loyalty" linkLabel="Loyalty">
             Atur berapa rupiah per 1 poin dan nilai tukarnya. Member naik tier otomatis (bronze → platinum) sesuai total belanja,
             dan tiap tier bisa punya diskon berbeda.
@@ -207,7 +208,7 @@ export default function Panduan() {
 
       {tab === 'tips' && (
         <div className="card">
-          <div className="card-header"><div className="card-title"><span className="nav-icon">💡</span> Tips & Pertanyaan Umum</div></div>
+          <div className="card-header"><div className="card-title"><Icon name="pulse" size={16} /> Tips & Pertanyaan Umum</div></div>
 
           <Poin q="Kenapa laporan laba saya berbeda dari perkiraan?"
             a="Penyebab paling umum: HPP belum diisi atau salah. Pastikan setiap produk punya HPP per unit yang benar, dan setiap bahan punya harga beli terbaru. Laba kotor = omset − (HPP × qty terjual)." />

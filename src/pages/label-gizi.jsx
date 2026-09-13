@@ -3,6 +3,7 @@ import { supabase } from '../utils/supabaseClient'
 import { useAuth } from '../components/AuthProvider'
 import AppLayout from '../components/AppLayout'
 import { logAudit } from '../utils/audit'
+import Icon from '../components/Icons'
 
 const hariIni = () => new Date().toISOString().slice(0, 10)
 const tglID = (v) => v ? new Date(v).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'
@@ -75,7 +76,7 @@ export default function LabelGizi() {
       }
       logAudit({ aksi: editId ? 'ubah_label_gizi' : 'tambah_label_gizi', user, sheetTarget: 'nutrition_labels',
         detail: { produk: p.nama_produk, kalori: payload.kalori } })
-      setMsg(editId ? '✅ Label diperbarui' : '✅ Label gizi disimpan')
+      setMsg(editId ? ' Label diperbarui' : ' Label gizi disimpan')
       setForm(KOSONG); setEditId(null)
       fetchData()
     } catch (err) { setError(err.message) }
@@ -111,7 +112,7 @@ export default function LabelGizi() {
   return (
     <AppLayout title="Label Gizi" subtitle="Informasi nilai gizi produk">
       {msg && <div className="alert alert-success">{msg}</div>}
-      {error && <div className="alert alert-danger">⚠️ {error}</div>}
+      {error && <div className="alert alert-danger"> {error}</div>}
 
       <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(3,1fr)' }}>
         <div className="metric-card"><div className="metric-label">Produk Berlabel</div><div className="metric-value text-primary">{stat.total}</div></div>
@@ -122,7 +123,7 @@ export default function LabelGizi() {
       <form onSubmit={simpan}>
         <div className="card">
           <div className="card-header">
-            <div className="card-title"><div className="nav-icon">🥗</div> {editId ? 'Ubah Label Gizi' : 'Buat Label Gizi'}</div>
+            <div className="card-title"><div className="nav-icon"></div> {editId ? 'Ubah Label Gizi' : 'Buat Label Gizi'}</div>
             {editId && <button type="button" className="btn btn-sm btn-outline" onClick={() => { setEditId(null); setForm(KOSONG) }}>Batal Edit</button>}
           </div>
 
@@ -158,7 +159,7 @@ export default function LabelGizi() {
 
           <div className="flex justify-end">
             <button type="submit" className="btn btn-primary" disabled={saving}>
-              {saving ? <><span className="spinner" /> Menyimpan...</> : editId ? '💾 Perbarui' : '＋ Simpan Label'}
+              {saving ? <><span className="spinner" /> Menyimpan...</> : editId ? ' Perbarui' : '＋ Simpan Label'}
             </button>
           </div>
         </div>
@@ -166,15 +167,15 @@ export default function LabelGizi() {
 
       <div className="card" style={{ padding: 0 }}>
         <div className="card-header" style={{ padding: 16 }}>
-          <div className="card-title"><span className="nav-icon">📋</span> Daftar Label</div>
-          <input className="form-control" style={{ maxWidth: 220 }} placeholder="🔍 Cari produk..."
+          <div className="card-title"><Icon name="clipboard" size={16} /> Daftar Label</div>
+          <input className="form-control" style={{ maxWidth: 220 }} placeholder="Cari produk..."
             value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
 
         {loading ? <p className="text-muted text-center py-4">Memuat...</p>
           : filtered.length === 0 ? (
             <div className="empty-state">
-              <div className="nav-icon" style={{ fontSize: 40 }}>🥗</div>
+              <div className="nav-icon" style={{ fontSize: 40 }}></div>
               <h3>Belum ada label gizi</h3>
               <p className="text-sm">Buat label untuk mencantumkan informasi gizi pada kemasan.</p>
             </div>
@@ -194,9 +195,9 @@ export default function LabelGizi() {
                       ))}
                       <td className="text-right">
                         <div className="flex gap-1 justify-end">
-                          <button className="btn btn-sm btn-outline" onClick={() => setCetak(d)}>🏷️</button>
-                          <button className="btn btn-sm btn-outline" onClick={() => edit(d)}>✏️</button>
-                          <button className="btn btn-sm btn-danger" onClick={() => hapus(d)}>✕</button>
+                          <button className="btn btn-sm btn-outline" onClick={() => setCetak(d)}></button>
+                          <button className="btn btn-sm btn-outline" onClick={() => edit(d)}><Icon name="sliders" size={13} /></button>
+                          <button className="btn btn-sm btn-danger" onClick={() => hapus(d)}><Icon name="close" size={13} /></button>
                         </div>
                       </td>
                     </tr>
@@ -211,10 +212,10 @@ export default function LabelGizi() {
       {cetak && (
         <div className="card" style={{ border: '2px solid var(--primary)' }}>
           <div className="card-header">
-            <div className="card-title"><span className="nav-icon">🏷️</span> Preview Label — {cetak.nama_produk}</div>
+            <div className="card-title"><span className="nav-icon"></span> Preview Label — {cetak.nama_produk}</div>
             <div className="flex gap-2">
-              <button className="btn btn-sm btn-primary" onClick={() => window.print()}>🖨️ Cetak</button>
-              <button className="btn btn-sm btn-outline" onClick={() => setCetak(null)}>✕</button>
+              <button className="btn btn-sm btn-primary" onClick={() => window.print()}> Cetak</button>
+              <button className="btn btn-sm btn-outline" onClick={() => setCetak(null)}><Icon name="close" size={13} /></button>
             </div>
           </div>
           <div className="label-preview">

@@ -3,6 +3,7 @@ import { supabase } from '../utils/supabaseClient'
 import { useAuth } from '../components/AuthProvider'
 import AppLayout from '../components/AppLayout'
 import { logAudit } from '../utils/audit'
+import Icon from '../components/Icons'
 
 const formatRupiah = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
@@ -84,7 +85,7 @@ export default function PreOrder() {
       if (error) throw error
       logAudit({ aksi: 'tambah_preorder', user, sheetTarget: 'pre_orders',
         detail: { customer: form.nama_customer, produk: form.produk, qty, total } })
-      setMsg('✅ Pre-order dicatat')
+      setMsg(' Pre-order dicatat')
       setForm({ nama_customer: '', kontak: '', produk: '', qty: '1', harga: '', dp: '0', tgl_target: '', tgl_order: hariIni() })
       fetchData()
     } catch (err) { setError(err.message) }
@@ -114,7 +115,7 @@ export default function PreOrder() {
         kategori: 'Penjualan', jenis: 'masuk', jumlah: nominal, saldo: 0,
       })
       logAudit({ aksi: 'bayar_preorder', user, sheetTarget: 'pre_orders', detail: { customer: row.nama_customer, nominal } })
-      setMsg(sisa <= 0 ? '✅ Pre-order lunas!' : `✅ Pembayaran dicatat (sisa ${formatRupiah(sisa)})`)
+      setMsg(sisa <= 0 ? ' Pre-order lunas!' : ` Pembayaran dicatat (sisa ${formatRupiah(sisa)})`)
       setBayar(null)
       fetchData()
     } catch (e) { setError(e.message) }
@@ -153,7 +154,7 @@ export default function PreOrder() {
   return (
     <AppLayout title="Pre-Order" subtitle="Pesanan pelanggan sebelum produksi">
       {msg && <div className="alert alert-success">{msg}</div>}
-      {error && <div className="alert alert-danger">⚠️ {error}</div>}
+      {error && <div className="alert alert-danger"> {error}</div>}
 
       <div className="metrics-grid">
         <div className="metric-card"><div className="metric-label">Total Pre-Order</div><div className="metric-value text-primary">{stat.total}</div></div>
@@ -164,7 +165,7 @@ export default function PreOrder() {
 
       <form onSubmit={simpan}>
         <div className="card">
-          <div className="card-header"><div className="card-title"><span className="nav-icon">📅</span> Catat Pre-Order</div></div>
+          <div className="card-header"><div className="card-title"><Icon name="calendar" size={16} /> Catat Pre-Order</div></div>
           <div className="form-row">
             <div className="form-group">
               <label className="form-label">Nama Pelanggan *</label>
@@ -219,8 +220,8 @@ export default function PreOrder() {
       {bayar && (
         <div className="card" style={{ border: '2px solid var(--primary)' }}>
           <div className="card-header">
-            <div className="card-title"><span className="nav-icon">💵</span> Pembayaran — {bayar.row.nama_customer}</div>
-            <button className="btn btn-sm btn-outline" onClick={() => setBayar(null)}>✕</button>
+            <div className="card-title"><Icon name="banknote" size={16} /> Pembayaran — {bayar.row.nama_customer}</div>
+            <button className="btn btn-sm btn-outline" onClick={() => setBayar(null)}><Icon name="close" size={13} /></button>
           </div>
           <div className="text-sm text-muted mb-3">Sisa tagihan: <b>{formatRupiah(bayar.row.sisa)}</b></div>
           <div className="form-row">
@@ -231,16 +232,16 @@ export default function PreOrder() {
           </div>
           <div className="flex gap-2 justify-end">
             <button className="btn btn-outline" onClick={() => setBayar({ ...bayar, jumlah: String(bayar.row.sisa) })}>Lunasi Semua</button>
-            <button className="btn btn-primary" onClick={simpanBayar} disabled={saving}>💾 Simpan</button>
+            <button className="btn btn-primary" onClick={simpanBayar} disabled={saving}> Simpan</button>
           </div>
         </div>
       )}
 
       <div className="card" style={{ padding: 0 }}>
         <div className="card-header" style={{ padding: 16 }}>
-          <div className="card-title"><span className="nav-icon">📋</span> Daftar Pre-Order</div>
+          <div className="card-title"><Icon name="clipboard" size={16} /> Daftar Pre-Order</div>
           <div className="flex flex-wrap gap-2">
-            <input className="form-control" style={{ maxWidth: 200 }} placeholder="🔍 Cari..." value={search} onChange={(e) => setSearch(e.target.value)} />
+            <input className="form-control" style={{ maxWidth: 200 }} placeholder="Cari..." value={search} onChange={(e) => setSearch(e.target.value)} />
             <select className="form-control" style={{ maxWidth: 140 }} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
               <option value="">Semua Status</option>
               {Object.entries(STATUS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
@@ -251,7 +252,7 @@ export default function PreOrder() {
         {loading ? <p className="text-muted text-center py-4">Memuat...</p>
           : filtered.length === 0 ? (
             <div className="empty-state">
-              <div className="nav-icon" style={{ fontSize: 40 }}>📅</div>
+              <div className="nav-icon" style={{ fontSize: 40 }}></div>
               <h3>Belum ada pre-order</h3>
               <p className="text-sm">Catat pesanan pelanggan sebelum produksi.</p>
             </div>
@@ -277,15 +278,15 @@ export default function PreOrder() {
                       <td className="text-right">
                         <div className="flex gap-1 justify-end">
                           {Number(d.sisa) > 0 && d.status !== 'batal' && (
-                            <button className="btn btn-sm btn-primary" onClick={() => setBayar({ row: d, jumlah: String(d.sisa) })}>💵</button>
+                            <button className="btn btn-sm btn-primary" onClick={() => setBayar({ row: d, jumlah: String(d.sisa) })}><Icon name="banknote" size={13} /></button>
                           )}
                           {d.status === 'lunas' && (
-                            <button className="btn btn-sm btn-outline" onClick={() => ubahStatus(d, 'selesai')}>✓ Selesai</button>
+                            <button className="btn btn-sm btn-outline" onClick={() => ubahStatus(d, 'selesai')}> Selesai</button>
                           )}
                           {d.status !== 'batal' && d.status !== 'selesai' && (
                             <button className="btn btn-sm btn-outline" onClick={() => ubahStatus(d, 'batal')}>Batal</button>
                           )}
-                          <button className="btn btn-sm btn-danger" onClick={() => hapus(d)}>✕</button>
+                          <button className="btn btn-sm btn-danger" onClick={() => hapus(d)}><Icon name="close" size={13} /></button>
                         </div>
                       </td>
                     </tr>

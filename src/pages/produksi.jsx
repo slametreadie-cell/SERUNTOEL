@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../utils/supabaseClient'
 import { useAuth } from '../components/AuthProvider'
 import AppLayout from '../components/AppLayout'
+import Icon from '../components/Icons'
 
 const formatRupiah = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
@@ -97,7 +98,7 @@ export default function Produksi() {
         if (error) throw error
       }
 
-      setMsg('✅ Resep disimpan')
+      setMsg(' Resep disimpan')
       setProdukId(''); setBatchList([])
       fetchData()
     } catch (e) {
@@ -123,10 +124,10 @@ export default function Produksi() {
   return (
     <AppLayout title="Resep Produksi" subtitle="Komposisi bahan per produk">
       {msg && <div className="alert alert-success">{msg}</div>}
-      {error && <div className="alert alert-danger">⚠️ {error}</div>}
+      {error && <div className="alert alert-danger"> {error}</div>}
 
       <div className="card">
-        <div className="card-header"><div className="card-title"><span className="nav-icon">🍲</span> {batchList.length && produkId ? 'Ubah Resep' : 'Buat Resep Baru'}</div></div>
+        <div className="card-header"><div className="card-title"><Icon name="pot" size={16} /> {batchList.length && produkId ? 'Ubah Resep' : 'Buat Resep Baru'}</div></div>
 
         <div className="form-row">
           <div className="form-group">
@@ -170,7 +171,7 @@ export default function Produksi() {
                     <td className="text-right">{b.qty} {b.satuan}</td>
                     <td className="text-right">{formatRupiah(b.harga_satuan)}</td>
                     <td className="text-right font-bold">{formatRupiah(b.qty * b.harga_satuan)}</td>
-                    <td className="text-right"><button className="btn btn-sm btn-danger" onClick={() => hapusDariBatch(idx)}>✕</button></td>
+                    <td className="text-right"><button className="btn btn-sm btn-danger" onClick={() => hapusDariBatch(idx)}><Icon name="close" size={13} /></button></td>
                   </tr>
                 ))}
                 <tr style={{ background: 'var(--card-alt, rgba(0,0,0,0.03))' }}>
@@ -188,7 +189,7 @@ export default function Produksi() {
             <button type="button" className="btn btn-outline" onClick={() => { setBatchList([]); setProdukId('') }}>Bersihkan</button>
           )}
           <button type="button" className="btn btn-primary" onClick={simpanResep} disabled={saving || !batchList.length}>
-            {saving ? <><span className="spinner" /> Menyimpan...</> : '💾 Simpan Resep'}
+            {saving ? <><span className="spinner" /> Menyimpan...</> : ' Simpan Resep'}
           </button>
         </div>
       </div>
@@ -196,7 +197,7 @@ export default function Produksi() {
       {/* Daftar resep */}
       <div className="card" style={{ padding: 0 }}>
         <div className="card-header" style={{ padding: 16 }}>
-          <div className="card-title"><span className="nav-icon">📖</span> Daftar Resep</div>
+          <div className="card-title"><Icon name="book" size={16} /> Daftar Resep</div>
           <span className="text-sm text-muted">{recipes.length} resep</span>
         </div>
 
@@ -204,7 +205,7 @@ export default function Produksi() {
           <p className="text-muted text-center py-4">Memuat...</p>
         ) : recipes.length === 0 ? (
           <div className="empty-state">
-            <div className="nav-icon" style={{ fontSize: 40 }}>🍲</div>
+            <div className="nav-icon" style={{ fontSize: 40 }}></div>
             <h3>Belum ada resep</h3>
             <p className="text-sm">Buat resep untuk menghitung kebutuhan bahan tiap produk.</p>
           </div>
@@ -221,8 +222,8 @@ export default function Produksi() {
                       <div className="text-xs text-muted">{items.length} bahan · biaya bahan {formatRupiah(total)}</div>
                     </div>
                     <div className="flex gap-2">
-                      <button className="btn btn-sm btn-outline" onClick={() => editResep(r)}>✏️ Ubah</button>
-                      <button className="btn btn-sm btn-danger" onClick={() => hapusResep(r.id)}>✕</button>
+                      <button className="btn btn-sm btn-outline" onClick={() => editResep(r)}> Ubah</button>
+                      <button className="btn btn-sm btn-danger" onClick={() => hapusResep(r.id)}><Icon name="close" size={13} /></button>
                     </div>
                   </div>
                   <div className="table-wrap mt-2">

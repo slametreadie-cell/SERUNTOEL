@@ -4,6 +4,7 @@ import { supabase } from '../utils/supabaseClient'
 import { useAuth } from '../components/AuthProvider'
 import AppLayout from '../components/AppLayout'
 import { logAudit } from '../utils/audit'
+import Icon from '../components/Icons'
 
 const formatRupiah = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
@@ -26,7 +27,7 @@ export default function Cashflow() {
     if (!confirm(`Hapus catatan "${d.keterangan}"?`)) return
     await supabase.from('cashflow').delete().eq('id', d.id)
     logAudit({ aksi: 'hapus_cashflow', user, sheetTarget: 'cashflow', detail: { keterangan: d.keterangan, jumlah: d.jumlah } })
-    setMsg('✅ Catatan dihapus')
+    setMsg(' Catatan dihapus')
     fetchData()
     setTimeout(() => setMsg(''), 3000)
   }
@@ -40,7 +41,7 @@ export default function Cashflow() {
       kategori: editRow.kategori, jenis: editRow.jenis, jumlah,
     }).eq('id', editRow.id)
     logAudit({ aksi: 'ubah_cashflow', user, sheetTarget: 'cashflow', detail: { keterangan: editRow.keterangan } })
-    setMsg('✅ Catatan diperbarui')
+    setMsg(' Catatan diperbarui')
     setEditRow(null)
     fetchData()
     setTimeout(() => setMsg(''), 3000)
@@ -101,7 +102,7 @@ export default function Cashflow() {
       <div className="card" style={{ padding: 16 }}>
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex flex-wrap gap-2" style={{ flex: 1 }}>
-            <input className="form-control" style={{ maxWidth: 220 }} placeholder="🔍 Cari..." value={search} onChange={(e) => setSearch(e.target.value)} />
+            <input className="form-control" style={{ maxWidth: 220 }} placeholder="Cari..." value={search} onChange={(e) => setSearch(e.target.value)} />
             <select className="form-control" style={{ maxWidth: 150 }} value={filterJenis} onChange={(e) => setFilterJenis(e.target.value)}>
               <option value="">Semua Jenis</option>
               <option value="masuk">Masuk</option>
@@ -117,13 +118,13 @@ export default function Cashflow() {
       </div>
 
       {msg && <div className="alert alert-success">{msg}</div>}
-      {error && <div className="alert alert-danger">⚠️ {error}</div>}
+      {error && <div className="alert alert-danger"> {error}</div>}
 
       {editRow && (
         <div className="card" style={{ border: '2px solid var(--primary)' }}>
           <div className="card-header">
-            <div className="card-title"><span className="nav-icon">✏️</span> Ubah Catatan</div>
-            <button className="btn btn-sm btn-outline" onClick={() => setEditRow(null)}>✕</button>
+            <div className="card-title"><Icon name="sliders" size={16} /> Ubah Catatan</div>
+            <button className="btn btn-sm btn-outline" onClick={() => setEditRow(null)}><Icon name="close" size={13} /></button>
           </div>
           <div className="form-row">
             <div className="form-group">
@@ -154,7 +155,7 @@ export default function Cashflow() {
           </div>
           <div className="flex gap-2 justify-end">
             <button className="btn btn-outline" onClick={() => setEditRow(null)}>Batal</button>
-            <button className="btn btn-primary" onClick={simpanEditCatatan}>💾 Simpan</button>
+            <button className="btn btn-primary" onClick={simpanEditCatatan}> Simpan</button>
           </div>
         </div>
       )}
@@ -162,7 +163,7 @@ export default function Cashflow() {
       {/* Daftar transaksi */}
       <div className="card" style={{ padding: 0 }}>
         <div className="card-header" style={{ padding: 16 }}>
-          <div className="card-title"><span className="nav-icon">📒</span> Riwayat Transaksi</div>
+          <div className="card-title"><Icon name="book" size={16} /> Riwayat Transaksi</div>
           <span className="text-sm text-muted">{filtered.length} catatan</span>
         </div>
 
@@ -170,7 +171,7 @@ export default function Cashflow() {
           <p className="text-muted text-center py-4">Memuat...</p>
         ) : filtered.length === 0 ? (
           <div className="empty-state">
-            <div className="nav-icon" style={{ fontSize: 40 }}>💸</div>
+            <div className="nav-icon" style={{ fontSize: 40 }}></div>
             <h3>Belum ada transaksi</h3>
             <p className="text-sm">Catat pemasukan atau pengeluaran pertama Anda.</p>
           </div>
@@ -197,8 +198,8 @@ export default function Cashflow() {
                     <td className="text-right">
                       <div className="flex gap-1 justify-end">
                         <button className="btn btn-sm btn-outline"
-                          onClick={() => setEditRow({ id: d.id, tanggal: d.tanggal, keterangan: d.keterangan, kategori: d.kategori, jenis: d.jenis, jumlah: d.jumlah })}>✏️</button>
-                        <button className="btn btn-sm btn-danger" onClick={() => hapusCatatan(d)}>✕</button>
+                          onClick={() => setEditRow({ id: d.id, tanggal: d.tanggal, keterangan: d.keterangan, kategori: d.kategori, jenis: d.jenis, jumlah: d.jumlah })}><Icon name="sliders" size={13} /></button>
+                        <button className="btn btn-sm btn-danger" onClick={() => hapusCatatan(d)}><Icon name="close" size={13} /></button>
                       </div>
                     </td>
                   </tr>

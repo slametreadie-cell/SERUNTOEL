@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../utils/supabaseClient'
 import { useAuth } from '../components/AuthProvider'
 import AppLayout from '../components/AppLayout'
+import Icon from '../components/Icons'
 
 const formatRupiah = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
@@ -112,7 +113,7 @@ export default function Forecast() {
       <div className="grid-2">
         {/* Kiri: input simulasi */}
         <div className="card">
-          <div className="card-header"><div className="card-title"><span className="nav-icon">🎯</span> Simulasi Skenario</div></div>
+          <div className="card-header"><div className="card-title"><Icon name="target" size={16} /> Simulasi Skenario</div></div>
 
           <div className="form-group">
             <label className="form-label">Pilih Produk</label>
@@ -145,8 +146,8 @@ export default function Forecast() {
           </div>
 
           <div className="flex gap-2">
-            <button className="btn btn-primary" style={{ flex: 1 }} onClick={hitung}>🔮 Hitung Simulasi</button>
-            {hasil && <button className="btn btn-outline" onClick={simpanSimulasi} disabled={saving}>{saving ? 'Menyimpan...' : '💾 Simpan'}</button>}
+            <button className="btn btn-primary" style={{ flex: 1 }} onClick={hitung}> Hitung Simulasi</button>
+            {hasil && <button className="btn btn-outline" onClick={simpanSimulasi} disabled={saving}>{saving ? 'Menyimpan...' : ' Simpan'}</button>}
           </div>
 
           {error && <div className="alert alert-danger mt-3">{error}</div>}
@@ -154,11 +155,11 @@ export default function Forecast() {
 
         {/* Kanan: hasil */}
         <div className="card">
-          <div className="card-header"><div className="card-title"><span className="nav-icon">📊</span> Hasil Simulasi</div></div>
+          <div className="card-header"><div className="card-title"><Icon name="barChart" size={16} /> Hasil Simulasi</div></div>
 
           {!hasil ? (
             <div className="empty-state">
-              <div className="nav-icon" style={{ fontSize: 40 }}>🔮</div>
+              <div className="nav-icon" style={{ fontSize: 40 }}></div>
               <h3>Belum ada simulasi</h3>
               <p className="text-sm">Isi parameter di kiri lalu klik "Hitung Simulasi".</p>
             </div>
@@ -175,7 +176,7 @@ export default function Forecast() {
           )}
 
           {hasil && hasil.labaUnit < 0 && (
-            <div className="alert alert-danger mt-3">⚠️ Produk ini akan RUGI {formatRupiah(Math.abs(hasil.labaUnit))} per unit!</div>
+            <div className="alert alert-danger mt-3"> Produk ini akan RUGI {formatRupiah(Math.abs(hasil.labaUnit))} per unit!</div>
           )}
         </div>
       </div>
@@ -183,7 +184,7 @@ export default function Forecast() {
       {/* Riwayat simulasi */}
       <div className="card" style={{ padding: 0 }}>
         <div className="card-header" style={{ padding: 16 }}>
-          <div className="card-title"><span className="nav-icon">📜</span> Riwayat Simulasi</div>
+          <div className="card-title"><Icon name="fileText" size={16} /> Riwayat Simulasi</div>
         </div>
         {riwayat.length === 0 ? (
           <div className="empty-state"><p className="text-sm">Belum ada simulasi tersimpan.</p></div>
@@ -203,7 +204,7 @@ export default function Forecast() {
                     <td>{formatRupiah(r.harga_jual_baru)}</td>
                     <td className={r.laba_unit >= 0 ? 'text-success font-bold' : 'text-danger font-bold'}>{formatRupiah(r.laba_unit)}</td>
                     <td className="text-right">
-                      <button className="btn btn-sm btn-danger" onClick={() => hapusSimulasi(r)}>✕</button>
+                      <button className="btn btn-sm btn-danger" onClick={() => hapusSimulasi(r)}><Icon name="close" size={13} /></button>
                     </td>
                   </tr>
                 ))}

@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import { supabase } from '../../utils/supabaseClient'
 import { useAuth } from '../../components/AuthProvider'
 import AppLayout from '../../components/AppLayout'
+import Icon from '../../components/Icons'
 
 const formatRupiah = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
@@ -112,10 +113,10 @@ export default function TambahBahan() {
   return (
     <AppLayout title="Tambah Bahan" subtitle="Catat stok & pembelian bahan baku">
       <form onSubmit={handleSubmit}>
-        {error && <div className="alert alert-danger">⚠️ {error}</div>}
+        {error && <div className="alert alert-danger"> {error}</div>}
 
         <div className="card">
-          <div className="card-header"><div className="card-title"><span className="nav-icon">🧂</span> Informasi Bahan</div></div>
+          <div className="card-header"><div className="card-title"><Icon name="pot" size={16} /> Informasi Bahan</div></div>
 
           <div className="form-group">
             <label className="form-label">Nama Bahan *</label>
@@ -169,7 +170,7 @@ export default function TambahBahan() {
           <div className="flex gap-2 justify-end">
             <button type="button" className="btn btn-outline" onClick={() => router.push('/inventory')}>Batal</button>
             <button type="submit" className="btn btn-primary" disabled={saving}>
-              {saving ? <><span className="spinner" /> Menyimpan...</> : '💾 Simpan Bahan'}
+              {saving ? <><span className="spinner" /> Menyimpan...</> : ' Simpan Bahan'}
             </button>
           </div>
         </div>

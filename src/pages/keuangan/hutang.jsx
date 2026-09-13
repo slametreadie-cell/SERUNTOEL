@@ -3,6 +3,7 @@ import { supabase } from '../../utils/supabaseClient'
 import { useAuth } from '../../components/AuthProvider'
 import AppLayout from '../../components/AppLayout'
 import { logAudit } from '../../utils/audit'
+import Icon from '../../components/Icons'
 
 const formatRupiah = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
@@ -106,7 +107,7 @@ export default function HutangPiutang() {
       if (error) throw error
       logAudit({ aksi: form.jenis === 'piutang' ? 'tambah_piutang' : 'tambah_hutang', user,
         sheetTarget: 'receivables_payables', detail: { nama: form.nama_customer, jumlah } })
-      setMsg(`✅ ${form.jenis === 'piutang' ? 'Piutang' : 'Hutang'} dicatat`)
+      setMsg(` ${form.jenis === 'piutang' ? 'Piutang' : 'Hutang'} dicatat`)
       setForm({ ...form, nama_customer: '', jumlah: '', jatuh_tempo: '', keterangan: '' })
       fetchData()
     } catch (err) { setError(err.message) }
@@ -146,7 +147,7 @@ export default function HutangPiutang() {
       logAudit({ aksi: 'bayar_' + row.jenis, user, sheetTarget: 'receivables_payables',
         detail: { nama: row.nama_customer, bayar: nominal, lunas } })
 
-      setMsg(lunas ? '✅ Lunas!' : `✅ Pembayaran dicatat (sisa ${formatRupiah(total - baru)})`)
+      setMsg(lunas ? ' Lunas!' : ` Pembayaran dicatat (sisa ${formatRupiah(total - baru)})`)
       setBayar(null)
       fetchData()
     } catch (err) { setError(err.message) }
@@ -173,15 +174,15 @@ export default function HutangPiutang() {
   return (
     <AppLayout title="Hutang & Piutang" subtitle="Catat tagihan dan kewajiban">
       {msg && <div className="alert alert-success">{msg}</div>}
-      {error && <div className="alert alert-danger">⚠️ {error}</div>}
+      {error && <div className="alert alert-danger"> {error}</div>}
       {kolomKurang && (
         <div className="alert alert-warning">
-          <b>⚠️ Perlu 1 langkah di Supabase</b><br />
+          <b> Perlu 1 langkah di Supabase</b><br />
           Halaman ini butuh kolom <code>dibayar</code> pada tabel <code>receivables_payables</code>.
           Buka <b>Supabase → SQL Editor → New query</b>, tempel isi
           <code> supabase/migrations/004_add_missing_columns.sql</code>, lalu klik <b>Run</b>.
           Setelah itu klik <b>Muat Ulang</b>.
-          <button className="btn btn-sm btn-outline mt-2" onClick={fetchData}>🔄 Muat Ulang</button>
+          <button className="btn btn-sm btn-outline mt-2" onClick={fetchData}> Muat Ulang</button>
         </div>
       )}
 
@@ -211,16 +212,16 @@ export default function HutangPiutang() {
       {/* Form */}
       <form onSubmit={simpan}>
         <div className="card">
-          <div className="card-header"><div className="card-title"><span className="nav-icon">📝</span> Catat Baru</div></div>
+          <div className="card-header"><div className="card-title"><Icon name="sliders" size={16} /> Catat Baru</div></div>
 
           <div className="form-row">
             <div className="form-group">
               <label className="form-label">Jenis</label>
               <div className="flex gap-2">
                 <button type="button" className={`btn ${form.jenis === 'piutang' ? 'btn-primary' : 'btn-outline'}`} style={{ flex: 1 }}
-                  onClick={() => setForm({ ...form, jenis: 'piutang' })}>📥 Piutang (orang utang ke kita)</button>
+                  onClick={() => setForm({ ...form, jenis: 'piutang' })}> Piutang (orang utang ke kita)</button>
                 <button type="button" className={`btn ${form.jenis === 'hutang' ? 'btn-danger' : 'btn-outline'}`} style={{ flex: 1 }}
-                  onClick={() => setForm({ ...form, jenis: 'hutang' })}>📤 Hutang (kita utang)</button>
+                  onClick={() => setForm({ ...form, jenis: 'hutang' })}> Hutang (kita utang)</button>
               </div>
             </div>
           </div>
@@ -268,8 +269,8 @@ export default function HutangPiutang() {
       {bayar && (
         <div className="card" style={{ border: '2px solid var(--primary)' }}>
           <div className="card-header">
-            <div className="card-title"><span className="nav-icon">💵</span> Bayar — {bayar.row.nama_customer}</div>
-            <button className="btn btn-sm btn-outline" onClick={() => setBayar(null)}>✕</button>
+            <div className="card-title"><Icon name="banknote" size={16} /> Bayar — {bayar.row.nama_customer}</div>
+            <button className="btn btn-sm btn-outline" onClick={() => setBayar(null)}><Icon name="close" size={13} /></button>
           </div>
           <div className="text-sm text-muted mb-3">
             {bayar.row.jenis === 'piutang' ? 'Menerima pembayaran' : 'Membayar'}:{' '}
@@ -301,7 +302,7 @@ export default function HutangPiutang() {
               Lunasi Semua
             </button>
             <button className="btn btn-primary" onClick={simpanBayar} disabled={saving}>
-              {saving ? 'Menyimpan...' : '💾 Simpan Pembayaran'}
+              {saving ? 'Menyimpan...' : ' Simpan Pembayaran'}
             </button>
           </div>
         </div>
@@ -312,17 +313,17 @@ export default function HutangPiutang() {
         <div className="card-header" style={{ padding: 16 }}>
           <div className="flex gap-2">
             <button className={`btn btn-sm ${tab === 'piutang' ? 'btn-primary' : 'btn-outline'}`} onClick={() => setTab('piutang')}>
-              📥 Piutang ({stat.piutang.n})
+               Piutang ({stat.piutang.n})
             </button>
             <button className={`btn btn-sm ${tab === 'hutang' ? 'btn-primary' : 'btn-outline'}`} onClick={() => setTab('hutang')}>
-              📤 Hutang ({stat.hutang.n})
+               Hutang ({stat.hutang.n})
             </button>
           </div>
         </div>
 
         <div style={{ padding: '0 16px 12px' }}>
           <div className="flex flex-wrap gap-2">
-            <input className="form-control" style={{ maxWidth: 220 }} placeholder="🔍 Cari nama/keterangan..."
+            <input className="form-control" style={{ maxWidth: 220 }} placeholder="Cari nama/keterangan..."
               value={search} onChange={(e) => setSearch(e.target.value)} />
             <select className="form-control" style={{ maxWidth: 150 }} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
               <option value="">Semua Status</option>
@@ -336,7 +337,7 @@ export default function HutangPiutang() {
         {loading ? <p className="text-muted text-center py-4">Memuat...</p>
           : filtered.length === 0 ? (
             <div className="empty-state">
-              <div className="nav-icon" style={{ fontSize: 40 }}>{tab === 'piutang' ? '📥' : '📤'}</div>
+              <div className="nav-icon" style={{ fontSize: 40 }}>{tab === 'piutang' ? '' : ''}</div>
               <h3>Belum ada {tab}</h3>
               <p className="text-sm">Catat {tab} pelanggan atau supplier Anda.</p>
             </div>
@@ -357,7 +358,7 @@ export default function HutangPiutang() {
                         <td className="text-right font-bold">{formatRupiah(r.jumlah)}</td>
                         <td className="text-right">
                           {r.status === 'lunas'
-                            ? <span className="text-success">✅ 0</span>
+                            ? <span className="text-success"> 0</span>
                             : <b className="text-danger">{formatRupiah(sisaRp)}</b>}
                         </td>
                         <td className="text-sm">{r.jatuh_tempo ? tglID(r.jatuh_tempo) : '—'}</td>
@@ -366,12 +367,12 @@ export default function HutangPiutang() {
                           <div className="flex gap-1 justify-end">
                             {r.status !== 'lunas' && (
                               <button className="btn btn-sm btn-primary"
-                                onClick={() => setBayar({ row: r, jumlah: String(sisaRp), metode: 'cash', tanggal: hariIni() })}>💵</button>
+                                onClick={() => setBayar({ row: r, jumlah: String(sisaRp), metode: 'cash', tanggal: hariIni() })}><Icon name="banknote" size={13} /></button>
                             )}
                             {r.status === 'lunas' && (
                               <button className="btn btn-sm btn-outline" onClick={() => ubahStatus(r, 'aktif')}>Buka</button>
                             )}
-                            <button className="btn btn-sm btn-danger" onClick={() => hapus(r)}>✕</button>
+                            <button className="btn btn-sm btn-danger" onClick={() => hapus(r)}><Icon name="close" size={13} /></button>
                           </div>
                         </td>
                       </tr>

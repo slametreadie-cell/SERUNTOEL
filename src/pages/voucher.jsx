@@ -3,6 +3,7 @@ import { supabase } from '../utils/supabaseClient'
 import { useAuth } from '../components/AuthProvider'
 import AppLayout from '../components/AppLayout'
 import { logAudit } from '../utils/audit'
+import Icon from '../components/Icons'
 
 const formatRupiah = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
@@ -66,7 +67,7 @@ export default function Voucher() {
       })
       if (error) throw error
       logAudit({ aksi: 'tambah_voucher', user, sheetTarget: 'vouchers', detail: { kode, tipe: form.tipe, nilai } })
-      setMsg('✅ Voucher dibuat')
+      setMsg(' Voucher dibuat')
       setForm({ kode: '', tipe: 'persen', nilai: '', kategori: '', deskripsi: '', tanggal_mulai: hariIni(), tanggal_berakhir: '', aktif: true })
       fetchData()
     } catch (err) {
@@ -101,7 +102,7 @@ export default function Voucher() {
   return (
     <AppLayout title="Voucher & Promo" subtitle="Kelola kode diskon untuk pelanggan">
       {msg && <div className="alert alert-success">{msg}</div>}
-      {error && <div className="alert alert-danger">⚠️ {error}</div>}
+      {error && <div className="alert alert-danger"> {error}</div>}
 
       <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(3,1fr)' }}>
         <div className="metric-card">
@@ -121,7 +122,7 @@ export default function Voucher() {
       {/* Form buat voucher */}
       <form onSubmit={simpan}>
         <div className="card">
-          <div className="card-header"><div className="card-title"><span className="nav-icon">🎟️</span> Buat Voucher Baru</div></div>
+          <div className="card-header"><div className="card-title"><Icon name="ticket" size={16} /> Buat Voucher Baru</div></div>
 
           <div className="form-row">
             <div className="form-group">
@@ -178,8 +179,8 @@ export default function Voucher() {
       {/* Daftar voucher */}
       <div className="card" style={{ padding: 0 }}>
         <div className="card-header" style={{ padding: 16 }}>
-          <div className="card-title"><span className="nav-icon">📋</span> Daftar Voucher</div>
-          <input className="form-control" style={{ maxWidth: 220 }} placeholder="🔍 Cari kode..."
+          <div className="card-title"><Icon name="clipboard" size={16} /> Daftar Voucher</div>
+          <input className="form-control" style={{ maxWidth: 220 }} placeholder="Cari kode..."
             value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
 
@@ -187,7 +188,7 @@ export default function Voucher() {
           <p className="text-muted text-center py-4">Memuat...</p>
         ) : filtered.length === 0 ? (
           <div className="empty-state">
-            <div className="nav-icon" style={{ fontSize: 40 }}>🎟️</div>
+            <div className="nav-icon" style={{ fontSize: 40 }}></div>
             <h3>Belum ada voucher</h3>
             <p className="text-sm">Buat voucher untuk menarik pelanggan.</p>
           </div>
@@ -219,7 +220,7 @@ export default function Voucher() {
                           <button className="btn btn-sm btn-outline" onClick={() => toggleAktif(v)}>
                             {v.aktif ? 'Nonaktifkan' : 'Aktifkan'}
                           </button>
-                          <button className="btn btn-sm btn-danger" onClick={() => hapus(v)}>✕</button>
+                          <button className="btn btn-sm btn-danger" onClick={() => hapus(v)}><Icon name="close" size={13} /></button>
                         </div>
                       </td>
                     </tr>
@@ -234,7 +235,7 @@ export default function Voucher() {
       {/* Riwayat pemakaian */}
       <div className="card" style={{ padding: 0 }}>
         <div className="card-header" style={{ padding: 16 }}>
-          <div className="card-title"><span className="nav-icon">📜</span> Riwayat Pemakaian</div>
+          <div className="card-title"><Icon name="fileText" size={16} /> Riwayat Pemakaian</div>
           <span className="text-sm text-muted">{usage.length} catatan</span>
         </div>
         {usage.length === 0 ? (

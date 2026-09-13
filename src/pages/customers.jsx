@@ -4,6 +4,7 @@ import { supabase } from '../utils/supabaseClient'
 import { useAuth } from '../components/AuthProvider'
 import AppLayout from '../components/AppLayout'
 import { logAudit } from '../utils/audit'
+import Icon from '../components/Icons'
 
 const formatRupiah = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
@@ -28,7 +29,7 @@ export default function Pelanggan() {
     if (!confirm(`Hapus pelanggan "${c.nama}"?\n\nRiwayat transaksinya tetap tersimpan.`)) return
     await supabase.from('customers').delete().eq('id', c.id)
     logAudit({ aksi: 'hapus_pelanggan', user, sheetTarget: 'customers', detail: { nama: c.nama } })
-    setMsg(`✅ Pelanggan ${c.nama} dihapus`)
+    setMsg(` Pelanggan ${c.nama} dihapus`)
     fetchData()
     setTimeout(() => setMsg(''), 3000)
   }
@@ -40,7 +41,7 @@ export default function Pelanggan() {
       nama: editRow.nama.trim(), kontak: editRow.kontak || null, channel: editRow.channel || 'offline',
     }).eq('id', editRow.id)
     logAudit({ aksi: 'ubah_pelanggan', user, sheetTarget: 'customers', detail: { nama: editRow.nama } })
-    setMsg('✅ Data pelanggan diperbarui')
+    setMsg(' Data pelanggan diperbarui')
     setEditRow(null)
     fetchData()
     setTimeout(() => setMsg(''), 3000)
@@ -85,7 +86,7 @@ export default function Pelanggan() {
       <div className="card" style={{ padding: 16 }}>
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex flex-wrap gap-2" style={{ flex: 1 }}>
-            <input className="form-control" style={{ maxWidth: 240 }} placeholder="🔍 Cari nama/kontak..." value={search} onChange={(e) => setSearch(e.target.value)} />
+            <input className="form-control" style={{ maxWidth: 240 }} placeholder="Cari nama/kontak..." value={search} onChange={(e) => setSearch(e.target.value)} />
             <select className="form-control" style={{ maxWidth: 160 }} value={channelFilter} onChange={(e) => setChannelFilter(e.target.value)}>
               <option value="">Semua Channel</option>
               <option value="offline">Offline</option>
@@ -98,13 +99,13 @@ export default function Pelanggan() {
       </div>
 
       {msg && <div className="alert alert-success">{msg}</div>}
-      {error && <div className="alert alert-danger">⚠️ {error}</div>}
+      {error && <div className="alert alert-danger"> {error}</div>}
 
       {editRow && (
         <div className="card" style={{ border: '2px solid var(--primary)' }}>
           <div className="card-header">
-            <div className="card-title"><span className="nav-icon">✏️</span> Ubah Pelanggan</div>
-            <button className="btn btn-sm btn-outline" onClick={() => setEditRow(null)}>✕</button>
+            <div className="card-title"><Icon name="sliders" size={16} /> Ubah Pelanggan</div>
+            <button className="btn btn-sm btn-outline" onClick={() => setEditRow(null)}><Icon name="close" size={13} /></button>
           </div>
           <div className="form-row">
             <div className="form-group">
@@ -126,14 +127,14 @@ export default function Pelanggan() {
           </div>
           <div className="flex gap-2 justify-end">
             <button className="btn btn-outline" onClick={() => setEditRow(null)}>Batal</button>
-            <button className="btn btn-primary" onClick={simpanEditPelanggan}>💾 Simpan</button>
+            <button className="btn btn-primary" onClick={simpanEditPelanggan}> Simpan</button>
           </div>
         </div>
       )}
 
       <div className="card" style={{ padding: 0 }}>
         <div className="card-header" style={{ padding: 16 }}>
-          <div className="card-title"><span className="nav-icon">👥</span> Daftar Pelanggan</div>
+          <div className="card-title"><Icon name="users" size={16} /> Daftar Pelanggan</div>
           <span className="text-sm text-muted">{filtered.length} pelanggan</span>
         </div>
 
@@ -141,7 +142,7 @@ export default function Pelanggan() {
           <p className="text-muted text-center py-4">Memuat...</p>
         ) : filtered.length === 0 ? (
           <div className="empty-state">
-            <div className="nav-icon" style={{ fontSize: 40 }}>👤</div>
+            <div className="nav-icon" style={{ fontSize: 40 }}></div>
             <h3>Belum ada pelanggan</h3>
             <p className="text-sm">Pelanggan otomatis tercatat saat transaksi POS dengan nama.</p>
           </div>
@@ -167,8 +168,8 @@ export default function Pelanggan() {
                     <td className="text-right">
                       <div className="flex gap-1 justify-end">
                         <button className="btn btn-sm btn-outline"
-                          onClick={() => setEditRow({ id: c.id, nama: c.nama, kontak: c.kontak || '', channel: c.channel || 'offline' })}>✏️</button>
-                        <button className="btn btn-sm btn-danger" onClick={() => hapusPelanggan(c)}>✕</button>
+                          onClick={() => setEditRow({ id: c.id, nama: c.nama, kontak: c.kontak || '', channel: c.channel || 'offline' })}><Icon name="sliders" size={13} /></button>
+                        <button className="btn btn-sm btn-danger" onClick={() => hapusPelanggan(c)}><Icon name="close" size={13} /></button>
                       </div>
                     </td>
                   </tr>

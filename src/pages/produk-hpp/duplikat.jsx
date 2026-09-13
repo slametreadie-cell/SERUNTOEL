@@ -4,6 +4,7 @@ import { supabase } from '../../utils/supabaseClient'
 import { useAuth } from '../../components/AuthProvider'
 import AppLayout from '../../components/AppLayout'
 import { logAudit } from '../../utils/audit'
+import Icon from '../../components/Icons'
 
 const formatRupiah = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
@@ -66,7 +67,7 @@ export default function DuplikatProduk() {
       logAudit({ aksi: 'duplikat_produk', user, sheetTarget: 'products',
         detail: { dari: sumber.nama_produk, ke: form.nama_produk } })
 
-      setMsg(`✅ Produk "${form.nama_produk}" dibuat dari "${sumber.nama_produk}"`)
+      setMsg(` Produk "${form.nama_produk}" dibuat dari "${sumber.nama_produk}"`)
       setHasil((prev) => [{ nama: data.nama_produk, dari: sumber.nama_produk }, ...prev])
       setSumber(null)
       fetchData()
@@ -91,14 +92,14 @@ export default function DuplikatProduk() {
       actions={<Link href="/produk-hpp" className="btn btn-outline btn-sm">← Produk & HPP</Link>}
     >
       {msg && <div className="alert alert-success">{msg}</div>}
-      {error && <div className="alert alert-danger">⚠️ {error}</div>}
+      {error && <div className="alert alert-danger"> {error}</div>}
 
       {sumber && (
         <form onSubmit={duplikat}>
           <div className="card" style={{ border: '2px solid var(--primary)' }}>
             <div className="card-header">
-              <div className="card-title"><span className="nav-icon">📄</span> Duplikat dari: {sumber.nama_produk}</div>
-              <button type="button" className="btn btn-sm btn-outline" onClick={() => setSumber(null)}>✕</button>
+              <div className="card-title"><Icon name="fileText" size={16} /> Duplikat dari: {sumber.nama_produk}</div>
+              <button type="button" className="btn btn-sm btn-outline" onClick={() => setSumber(null)}><Icon name="close" size={13} /></button>
             </div>
             <div className="text-sm text-muted mb-3">
               Foto, margin, dan rincian HPP ikut disalin. Sesuaikan nama, harga, dan stok di bawah.
@@ -145,7 +146,7 @@ export default function DuplikatProduk() {
             <div className="flex gap-2 justify-end">
               <button type="button" className="btn btn-outline" onClick={() => setSumber(null)}>Batal</button>
               <button type="submit" className="btn btn-primary" disabled={saving}>
-                {saving ? <><span className="spinner" /> Membuat...</> : '📄 Buat Duplikat'}
+                {saving ? <><span className="spinner" /> Membuat...</> : ' Buat Duplikat'}
               </button>
             </div>
           </div>
@@ -154,7 +155,7 @@ export default function DuplikatProduk() {
 
       {hasil.length > 0 && (
         <div className="card">
-          <div className="card-header"><div className="card-title"><span className="nav-icon">✅</span> Baru Dibuat</div></div>
+          <div className="card-header"><div className="card-title"><Icon name="checkSquare" size={16} /> Baru Dibuat</div></div>
           {hasil.map((h, i) => (
             <div key={i} className="text-sm" style={{ padding: '6px 0', borderBottom: '1px dashed var(--border)' }}>
               <b>{h.nama}</b> <span className="text-muted">dari {h.dari}</span>
@@ -165,15 +166,15 @@ export default function DuplikatProduk() {
 
       <div className="card" style={{ padding: 0 }}>
         <div className="card-header" style={{ padding: 16 }}>
-          <div className="card-title"><span className="nav-icon">📦</span> Pilih Produk Sumber</div>
-          <input className="form-control" style={{ maxWidth: 240 }} placeholder="🔍 Cari produk..."
+          <div className="card-title"><Icon name="box" size={16} /> Pilih Produk Sumber</div>
+          <input className="form-control" style={{ maxWidth: 240 }} placeholder="Cari produk..."
             value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
 
         {loading ? <p className="text-muted text-center py-4">Memuat...</p>
           : filtered.length === 0 ? (
             <div className="empty-state">
-              <div className="nav-icon" style={{ fontSize: 40 }}>📦</div>
+              <div className="nav-icon" style={{ fontSize: 40 }}></div>
               <h3>Belum ada produk</h3>
               <p className="text-sm">Tambahkan produk dulu di menu Produk & HPP.</p>
             </div>
@@ -191,9 +192,9 @@ export default function DuplikatProduk() {
                       <td className="text-right">{p.stok_produk || 0}</td>
                       <td className="text-right">
                         <div className="flex gap-1 justify-end">
-                          <button className="btn btn-sm btn-primary" onClick={() => pilih(p)}>📄 Duplikat</button>
+                          <button className="btn btn-sm btn-primary" onClick={() => pilih(p)}> Duplikat</button>
                           <Link href={`/produk-hpp/${p.id}`} className="btn btn-sm btn-outline">Lihat</Link>
-                          <button className="btn btn-sm btn-danger" onClick={() => hapus(p)}>✕</button>
+                          <button className="btn btn-sm btn-danger" onClick={() => hapus(p)}><Icon name="close" size={13} /></button>
                         </div>
                       </td>
                     </tr>

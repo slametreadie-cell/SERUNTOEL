@@ -4,6 +4,7 @@ import { supabase } from '../../utils/supabaseClient'
 import { useAuth } from '../../components/AuthProvider'
 import AppLayout from '../../components/AppLayout'
 import { cetakStruk } from '../../utils/struk'
+import Icon from '../../components/Icons'
 
 const formatRupiah = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
@@ -87,9 +88,9 @@ export default function Kasir() {
     <AppLayout
       title="Riwayat Transaksi"
       subtitle="Cari transaksi & cetak ulang struk"
-      actions={<Link href="/kasir/tutup" className="btn btn-outline btn-sm">🔒 Tutup Kas</Link>}
+      actions={<Link href="/kasir/tutup" className="btn btn-outline btn-sm"> Tutup Kas</Link>}
     >
-      {error && <div className="alert alert-danger">⚠️ {error}</div>}
+      {error && <div className="alert alert-danger"> {error}</div>}
 
       <div className="metrics-grid">
         <div className="metric-card"><div className="metric-label">Total Omset</div><div className="metric-value text-primary">{formatRupiah(stat.omzet)}</div></div>
@@ -117,22 +118,22 @@ export default function Kasir() {
             <option value="online">Online</option>
             <option value="reseller">Reseller</option>
           </select>
-          <input className="form-control" style={{ maxWidth: 200 }} placeholder="🔍 No. trx / pelanggan"
+          <input className="form-control" style={{ maxWidth: 200 }} placeholder="No. trx / pelanggan"
             value={search} onChange={(e) => setSearch(e.target.value)} />
-          <button className="btn btn-outline btn-sm" onClick={fetchData}>🔄 Muat Ulang</button>
+          <button className="btn btn-outline btn-sm" onClick={fetchData}> Muat Ulang</button>
         </div>
       </div>
 
       <div className="card" style={{ padding: 0 }}>
         <div className="card-header" style={{ padding: 16 }}>
-          <div className="card-title"><span className="nav-icon">🧾</span> Daftar Transaksi</div>
+          <div className="card-title"><Icon name="receipt" size={16} /> Daftar Transaksi</div>
           <span className="text-sm text-muted">{filtered.length} transaksi</span>
         </div>
 
         {loading ? <p className="text-muted text-center py-4">Memuat...</p>
           : filtered.length === 0 ? (
             <div className="empty-state">
-              <div className="nav-icon" style={{ fontSize: 40 }}>🧾</div>
+              <div className="nav-icon" style={{ fontSize: 40 }}></div>
               <h3>Tidak ada transaksi</h3>
               <p className="text-sm">Coba ubah rentang tanggal atau filter.</p>
             </div>
@@ -150,7 +151,7 @@ export default function Kasir() {
                         <td className="text-muted text-sm" style={{ whiteSpace: 'nowrap' }}>{tglID(t.tanggal)}</td>
                         <td>
                           <div className="font-bold" style={{ fontSize: 12 }}>{t.id_transaksi}</div>
-                          {t.voucher_kode && <div className="text-xs text-muted">🎟️ {t.voucher_kode}</div>}
+                          {t.voucher_kode && <div className="text-xs text-muted"> {t.voucher_kode}</div>}
                         </td>
                         <td>{t.customer || '—'}</td>
                         <td><span className="badge badge-neutral">{METODE_LABEL[t.metode_pembayaran] || t.metode_pembayaran}</span></td>
@@ -159,7 +160,7 @@ export default function Kasir() {
                         <td className="text-right text-danger">{diskonTotal > 0 ? `−${formatRupiah(diskonTotal)}` : '—'}</td>
                         <td className="text-right font-bold text-primary">{formatRupiah(t.total_bayar)}</td>
                         <td className="text-right">
-                          <button className="btn btn-sm btn-outline" onClick={() => cetak(t)}>🖨️</button>
+                          <button className="btn btn-sm btn-outline" onClick={() => cetak(t)}><Icon name="receipt" size={13} /></button>
                         </td>
                       </tr>
                     )

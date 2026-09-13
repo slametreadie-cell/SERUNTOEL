@@ -4,6 +4,7 @@ import { useAuth } from '../components/AuthProvider'
 import AppLayout from '../components/AppLayout'
 import { logAudit } from '../utils/audit'
 import { LOYALTY_DEFAULT, TIER_DEFAULT, TIER_EMOJI, ORDER_TIER, tierDari } from '../utils/loyalty'
+import Icon from '../components/Icons'
 
 const formatRupiah = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
@@ -61,7 +62,7 @@ export default function Loyalty() {
       await setCfg('nilai_poin', String(nilaiPoin))
       await setCfg('min_tukar', String(minTukar))
       logAudit({ aksi: 'ubah_loyalty_config', user, sheetTarget: 'loyalty_config', detail: { poin_per_rupiah: poinPer, nilai_poin: nilaiPoin, min_tukar: minTukar } })
-      setMsg('✅ Konfigurasi poin disimpan')
+      setMsg(' Konfigurasi poin disimpan')
       fetchData()
     } catch (e) { setError(e.message) }
     finally { setSaving(false); setTimeout(() => setMsg(''), 3000) }
@@ -94,7 +95,7 @@ export default function Loyalty() {
         target_bulanan: Number(t.target_bulanan) || 0, keterangan: t.keterangan || null,
       })
     }
-    setMsg('✅ Tier diperbarui')
+    setMsg(' Tier diperbarui')
     fetchData()
     setTimeout(() => setMsg(''), 3000)
   }
@@ -106,7 +107,7 @@ export default function Loyalty() {
       if (!row) await supabase.from('tier_config').insert(t)
     }
     setSaving(false)
-    setMsg('✅ Tier default dibuat')
+    setMsg(' Tier default dibuat')
     fetchData()
   }
 
@@ -130,7 +131,7 @@ export default function Loyalty() {
       }
     }
     setSaving(false)
-    setMsg('✅ Tier semua member disinkronkan')
+    setMsg(' Tier semua member disinkronkan')
     fetchData()
     setTimeout(() => setMsg(''), 3000)
   }
@@ -151,7 +152,7 @@ export default function Loyalty() {
   return (
     <AppLayout title="Loyalty & Member" subtitle="Poin, tier, dan pelanggan setia">
       {msg && <div className="alert alert-success">{msg}</div>}
-      {error && <div className="alert alert-danger">⚠️ {error}</div>}
+      {error && <div className="alert alert-danger"> {error}</div>}
 
       <div className="metrics-grid">
         <div className="metric-card"><div className="metric-label">Total Member</div><div className="metric-value text-primary">{stat.total}</div></div>
@@ -163,10 +164,10 @@ export default function Loyalty() {
       <div className="card" style={{ padding: 8 }}>
         <div className="flex flex-wrap gap-2">
           {[
-            { k: 'member', l: '👥 Member' },
-            { k: 'riwayat', l: '📜 Riwayat Poin' },
-            { k: 'tier', l: '🏅 Tier & Diskon' },
-            { k: 'config', l: '⚙️ Aturan Poin' },
+            { k: 'member', l: ' Member' },
+            { k: 'riwayat', l: ' Riwayat Poin' },
+            { k: 'tier', l: ' Tier & Diskon' },
+            { k: 'config', l: ' Aturan Poin' },
           ].map((t) => (
             <button key={t.k} className={`btn btn-sm ${tab === t.k ? 'btn-primary' : 'btn-outline'}`} onClick={() => setTab(t.k)}>{t.l}</button>
           ))}
@@ -179,14 +180,14 @@ export default function Loyalty() {
           <div className="card" style={{ padding: 16 }}>
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex flex-wrap gap-2" style={{ flex: 1 }}>
-                <input className="form-control" style={{ maxWidth: 220 }} placeholder="🔍 Cari nama/kontak..."
+                <input className="form-control" style={{ maxWidth: 220 }} placeholder="Cari nama/kontak..."
                   value={search} onChange={(e) => setSearch(e.target.value)} />
                 <select className="form-control" style={{ maxWidth: 160 }} value={tierFilter} onChange={(e) => setTierFilter(e.target.value)}>
                   <option value="">Semua Tier</option>
                   {ORDER_TIER.map((t) => <option key={t} value={t}>{TIER_EMOJI[t]} {t}</option>)}
                 </select>
               </div>
-              <button className="btn btn-outline" onClick={sinkronTier} disabled={saving}>🔄 Sinkron Tier</button>
+              <button className="btn btn-outline" onClick={sinkronTier} disabled={saving}> Sinkron Tier</button>
             </div>
             <div className="flex flex-wrap gap-3 mt-3">
               {stat.perTier.map((p) => (
@@ -197,13 +198,13 @@ export default function Loyalty() {
 
           <div className="card" style={{ padding: 0 }}>
             <div className="card-header" style={{ padding: 16 }}>
-              <div className="card-title"><span className="nav-icon">👥</span> Daftar Member</div>
+              <div className="card-title"><Icon name="users" size={16} /> Daftar Member</div>
               <span className="text-sm text-muted">{filtered.length} member</span>
             </div>
             {loading ? <p className="text-muted text-center py-4">Memuat...</p>
               : filtered.length === 0 ? (
                 <div className="empty-state">
-                  <div className="nav-icon" style={{ fontSize: 40 }}>👥</div>
+                  <div className="nav-icon" style={{ fontSize: 40 }}></div>
                   <h3>Belum ada member</h3>
                   <p className="text-sm">Member otomatis terdaftar saat transaksi POS dengan nama pelanggan.</p>
                 </div>
@@ -221,7 +222,7 @@ export default function Loyalty() {
                           <td className="text-right">{formatRupiah(m.total_belanja)}</td>
                           <td className="text-right">{m.total_transaksi || 0}</td>
                           <td className="text-muted text-sm">{tglID(m.last_visit)}</td>
-                          <td className="text-right"><button className="btn btn-sm btn-danger" onClick={() => hapusMember(m)}>✕</button></td>
+                          <td className="text-right"><button className="btn btn-sm btn-danger" onClick={() => hapusMember(m)}><Icon name="close" size={13} /></button></td>
                         </tr>
                       ))}
                     </tbody>
@@ -236,7 +237,7 @@ export default function Loyalty() {
       {tab === 'riwayat' && (
         <div className="card" style={{ padding: 0 }}>
           <div className="card-header" style={{ padding: 16 }}>
-            <div className="card-title"><span className="nav-icon">📜</span> Riwayat Poin</div>
+            <div className="card-title"><Icon name="fileText" size={16} /> Riwayat Poin</div>
             <span className="text-sm text-muted">{riwayat.length} catatan</span>
           </div>
           {riwayat.length === 0 ? (
@@ -269,7 +270,7 @@ export default function Loyalty() {
       {tab === 'tier' && (
         <div className="card">
           <div className="card-header">
-            <div className="card-title"><span className="nav-icon">🏅</span> Tier & Diskon Otomatis</div>
+            <div className="card-title"><Icon name="gem" size={16} /> Tier & Diskon Otomatis</div>
             <button className="btn btn-sm btn-outline" onClick={seedTier} disabled={saving}>＋ Buat Tier Default</button>
           </div>
           <p className="text-sm text-muted mb-3">
@@ -291,7 +292,7 @@ export default function Loyalty() {
                       <td><input className="form-control" style={{ padding: '6px 8px' }}
                         value={row.keterangan || ''} onChange={(e) => editTier(t, 'keterangan', e.target.value)} /></td>
                       <td className="text-right">
-                        <button className="btn btn-sm btn-primary" onClick={() => simpanTier(row)}>💾</button>
+                        <button className="btn btn-sm btn-primary" onClick={() => simpanTier(row)}><Icon name="checkSquare" size={13} /></button>
                       </td>
                     </tr>
                   )
@@ -305,7 +306,7 @@ export default function Loyalty() {
       {/* ===== CONFIG ===== */}
       {tab === 'config' && (
         <div className="card">
-          <div className="card-header"><div className="card-title"><span className="nav-icon">⚙️</span> Aturan Poin</div></div>
+          <div className="card-header"><div className="card-title"><Icon name="settings" size={16} /> Aturan Poin</div></div>
 
           <div className="form-row">
             <div className="form-group">
@@ -341,7 +342,7 @@ export default function Loyalty() {
 
           <div className="flex justify-end">
             <button className="btn btn-primary" onClick={simpanConfig} disabled={saving}>
-              {saving ? <><span className="spinner" /> Menyimpan...</> : '💾 Simpan Aturan'}
+              {saving ? <><span className="spinner" /> Menyimpan...</> : ' Simpan Aturan'}
             </button>
           </div>
         </div>

@@ -3,6 +3,7 @@ import { supabase } from '../utils/supabaseClient'
 import { useAuth } from '../components/AuthProvider'
 import AppLayout from '../components/AppLayout'
 import { logAudit } from '../utils/audit'
+import Icon from '../components/Icons'
 
 const rp = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
@@ -113,7 +114,7 @@ export default function PengaturanLanjutan() {
         nama: userBaru.nama, role: userBaru.role,
       })
       logAudit({ aksi: 'tambah_user', user, sheetTarget: 'users', detail: { email: userBaru.email, role: userBaru.role } })
-      setMsg(`✅ Akun ${userBaru.email.trim().toLowerCase()} dibuat & bisa langsung login`)
+      setMsg(` Akun ${userBaru.email.trim().toLowerCase()} dibuat & bisa langsung login`)
       setUserBaru({ email: '', password: '', nama: '', role: 'kasir', lihat: false })
       await muatAkunLogin(); fetchData()
     } catch (err) { setError(err.message) }
@@ -132,7 +133,7 @@ export default function PengaturanLanjutan() {
         nama: editUser.nama,
       })
       logAudit({ aksi: 'ubah_user', user, sheetTarget: 'users', detail: { email: editUser.email } })
-      setMsg('✅ Akun diperbarui' + (editUser.password ? ' (password diganti)' : ''))
+      setMsg(' Akun diperbarui' + (editUser.password ? ' (password diganti)' : ''))
       setEditUser(null)
       await muatAkunLogin(); fetchData()
     } catch (err) { setError(err.message) }
@@ -145,7 +146,7 @@ export default function PengaturanLanjutan() {
     try {
       await apiAdmin({ aksi: 'delete', id: u.id, email: u.email })
       logAudit({ aksi: 'hapus_user', user, sheetTarget: 'users', detail: { email: u.email } })
-      setMsg(`✅ Akun ${u.email} dihapus`)
+      setMsg(` Akun ${u.email} dihapus`)
       await muatAkunLogin(); fetchData()
     } catch (err) { setError(err.message) }
     setTimeout(() => setMsg(''), 4000)
@@ -171,7 +172,7 @@ export default function PengaturanLanjutan() {
         await simpanKey(tabel, key, val(`${tabel === 'configuration' ? '' : tabel === 'legal_config' ? 'legal.' : 'notif.'}${key}`), f.ket)
       }
       logAudit({ aksi: `simpan_${tabel}`, user, sheetTarget: tabel, detail: { jumlah: fields.length } })
-      setMsg('✅ Tersimpan')
+      setMsg(' Tersimpan')
       fetchData()
     } catch (e) { setError(e.message) }
     finally { setSaving(false); setTimeout(() => setMsg(''), 3000) }
@@ -185,8 +186,8 @@ export default function PengaturanLanjutan() {
   const tesWA = async () => {
     const token = val('notif.fonnte_token')
     const nomor = val('notif.wa_admin').replace(/^0/, '62').replace(/\D/g, '')
-    if (!token) { setTesStatus('❌ Token Fonnte belum diisi'); return }
-    if (!nomor) { setTesStatus('❌ Nomor WA admin belum diisi'); return }
+    if (!token) { setTesStatus(' Token Fonnte belum diisi'); return }
+    if (!nomor) { setTesStatus(' Nomor WA admin belum diisi'); return }
     setTesStatus('⏳ Mengirim...')
     try {
       const res = await fetch('https://api.fonnte.com/send', {
@@ -194,14 +195,14 @@ export default function PengaturanLanjutan() {
         headers: { Authorization: token },
         body: new URLSearchParams({
           target: nomor,
-          message: `✅ Tes notifikasi dari Seruntul\n\nKalau Anda menerima pesan ini, integrasi WhatsApp sudah berfungsi.\nWaktu: ${new Date().toLocaleString('id-ID')}`,
+          message: ` Tes notifikasi dari Seruntul\n\nKalau Anda menerima pesan ini, integrasi WhatsApp sudah berfungsi.\nWaktu: ${new Date().toLocaleString('id-ID')}`,
         }),
       })
       const j = await res.json().catch(() => ({}))
-      if (res.ok && (j.status === true || j.status === 'true')) setTesStatus('✅ Berhasil! Cek WhatsApp Anda.')
-      else setTesStatus(`❌ Gagal: ${j.reason || j.detail || res.status}`)
+      if (res.ok && (j.status === true || j.status === 'true')) setTesStatus(' Berhasil! Cek WhatsApp Anda.')
+      else setTesStatus(` Gagal: ${j.reason || j.detail || res.status}`)
     } catch (e) {
-      setTesStatus(`❌ Error: ${e.message} (bisa jadi CORS — kirim pesan dari server tidak didukung browser)`)
+      setTesStatus(` Error: ${e.message} (bisa jadi CORS — kirim pesan dari server tidak didukung browser)`)
     }
   }
 
@@ -217,7 +218,7 @@ export default function PengaturanLanjutan() {
       })
       if (error) throw error
       logAudit({ aksi: 'tambah_user', user, sheetTarget: 'users', detail: { email: userBaru.email, role: userBaru.role } })
-      setMsg('✅ User ditambahkan')
+      setMsg(' User ditambahkan')
       setUserBaru({ email: '', nama: '', role: 'kasir' })
       fetchData()
     } catch (err) {
@@ -234,7 +235,7 @@ export default function PengaturanLanjutan() {
       await supabase.from('users').insert({ id: u.id, email: u.email, role })
     }
     logAudit({ aksi: 'ubah_role', user, sheetTarget: 'users', detail: { email: u.email, role } })
-    setMsg(`✅ Role ${u.email} → ${role}`)
+    setMsg(` Role ${u.email} → ${role}`)
     fetchData()
     setTimeout(() => setMsg(''), 3000)
   }
@@ -244,16 +245,16 @@ export default function PengaturanLanjutan() {
   return (
     <AppLayout title="Pengaturan Lanjutan" subtitle="Legal, pengiriman, notifikasi, dan user">
       {msg && <div className="alert alert-success">{msg}</div>}
-      {error && <div className="alert alert-danger">⚠️ {error}</div>}
+      {error && <div className="alert alert-danger"> {error}</div>}
 
       <div className="card" style={{ padding: 8 }}>
         <div className="flex flex-wrap gap-2">
           {[
-            { k: 'legal', l: '📜 Legalitas Usaha' },
-            { k: 'kirim', l: '🚚 Biaya Kirim' },
-            { k: 'notif', l: '💬 Notifikasi WhatsApp' },
-            { k: 'user', l: '👤 Manajemen User' },
-            { k: 'sistem', l: '🛠️ Sistem & Sinkron' },
+            { k: 'legal', l: ' Legalitas Usaha' },
+            { k: 'kirim', l: ' Biaya Kirim' },
+            { k: 'notif', l: ' Notifikasi WhatsApp' },
+            { k: 'user', l: ' Manajemen User' },
+            { k: 'sistem', l: ' Sistem & Sinkron' },
           ].map((t) => (
             <button key={t.k} className={`btn btn-sm ${tab === t.k ? 'btn-primary' : 'btn-outline'}`} onClick={() => setTab(t.k)}>{t.l}</button>
           ))}
@@ -263,7 +264,7 @@ export default function PengaturanLanjutan() {
       {/* ===== LEGAL ===== */}
       {tab === 'legal' && (
         <div className="card">
-          <div className="card-header"><div className="card-title"><span className="nav-icon">📜</span> Legalitas Usaha</div></div>
+          <div className="card-header"><div className="card-title"><Icon name="fileText" size={16} /> Legalitas Usaha</div></div>
           <p className="text-sm text-muted mb-3">Data ini dipakai untuk keperluan administrasi, label produk, dan pengajuan izin.</p>
           <div className="grid-2">
             {LEGAL_FIELDS.map((f) => (
@@ -276,7 +277,7 @@ export default function PengaturanLanjutan() {
           </div>
           <div className="flex justify-end">
             <button className="btn btn-primary" onClick={() => simpanSemua('legal_config', LEGAL_FIELDS)} disabled={saving}>
-              {saving ? <><span className="spinner" /> Menyimpan...</> : '💾 Simpan'}
+              {saving ? <><span className="spinner" /> Menyimpan...</> : ' Simpan'}
             </button>
           </div>
         </div>
@@ -285,7 +286,7 @@ export default function PengaturanLanjutan() {
       {/* ===== BIAYA KIRIM ===== */}
       {tab === 'kirim' && (
         <div className="card">
-          <div className="card-header"><div className="card-title"><span className="nav-icon">🚚</span> Biaya Kirim / Ongkir</div></div>
+          <div className="card-header"><div className="card-title"><Icon name="truck" size={16} /> Biaya Kirim / Ongkir</div></div>
           <div className="form-row">
             {KIRIM_CONFIG.map((f) => (
               <div className="form-group" key={f.k}>
@@ -305,7 +306,7 @@ export default function PengaturanLanjutan() {
           )}
           <div className="flex justify-end">
             <button className="btn btn-primary" onClick={() => simpanSemua('configuration', KIRIM_CONFIG)} disabled={saving}>
-              {saving ? <><span className="spinner" /> Menyimpan...</> : '💾 Simpan'}
+              {saving ? <><span className="spinner" /> Menyimpan...</> : ' Simpan'}
             </button>
           </div>
         </div>
@@ -314,7 +315,7 @@ export default function PengaturanLanjutan() {
       {/* ===== NOTIFIKASI WA ===== */}
       {tab === 'notif' && (
         <div className="card">
-          <div className="card-header"><div className="card-title"><span className="nav-icon">💬</span> Notifikasi WhatsApp (Fonnte)</div></div>
+          <div className="card-header"><div className="card-title"><span className="nav-icon"></span> Notifikasi WhatsApp (Fonnte)</div></div>
           <p className="text-sm text-muted mb-3">
             Kirim notifikasi otomatis ke WhatsApp Anda: stok menipis, produk mendekati kedaluwarsa, atau target tercapai.
             Layanan pihak ketiga <b>Fonnte</b> dipakai untuk pengiriman.
@@ -356,9 +357,9 @@ export default function PengaturanLanjutan() {
           {tesStatus && <div className="alert alert-info">{tesStatus}</div>}
 
           <div className="flex flex-wrap gap-2 justify-end">
-            <button className="btn btn-outline" onClick={tesWA}>🔔 Tes Kirim WA</button>
+            <button className="btn btn-outline" onClick={tesWA}> Tes Kirim WA</button>
             <button className="btn btn-primary" onClick={() => simpanSemua('notification_config', NOTIF_FIELDS)} disabled={saving}>
-              {saving ? <><span className="spinner" /> Menyimpan...</> : '💾 Simpan'}
+              {saving ? <><span className="spinner" /> Menyimpan...</> : ' Simpan'}
             </button>
           </div>
         </div>
@@ -370,7 +371,7 @@ export default function PengaturanLanjutan() {
           {/* Tambah akun login */}
           <form onSubmit={tambahAkunLogin}>
             <div className="card">
-              <div className="card-header"><div className="card-title"><span className="nav-icon">👤</span> Tambah Akun Login</div></div>
+              <div className="card-header"><div className="card-title"><Icon name="userCheck" size={16} /> Tambah Akun Login</div></div>
               <p className="text-sm text-muted mb-3">
                 Akun yang dibuat di sini <b>langsung bisa login</b> — tidak perlu buka Supabase lagi.
               </p>
@@ -387,7 +388,7 @@ export default function PengaturanLanjutan() {
                       onChange={(e) => setUserBaru({ ...userBaru, password: e.target.value })} placeholder="min. 6 karakter" />
                     <button type="button" className="pw-toggle" tabIndex={-1}
                       onClick={() => setUserBaru({ ...userBaru, lihat: !userBaru.lihat })}>
-                      {userBaru.lihat ? '🙈' : '👁️'}
+                      {userBaru.lihat ? '' : ''}
                     </button>
                   </div>
                 </div>
@@ -420,8 +421,8 @@ export default function PengaturanLanjutan() {
           {editUser && (
             <div className="card" style={{ border: '2px solid var(--primary)' }}>
               <div className="card-header">
-                <div className="card-title"><span className="nav-icon">✏️</span> Ubah Akun — {editUser.email}</div>
-                <button className="btn btn-sm btn-outline" onClick={() => setEditUser(null)}>✕</button>
+                <div className="card-title"><Icon name="sliders" size={16} /> Ubah Akun — {editUser.email}</div>
+                <button className="btn btn-sm btn-outline" onClick={() => setEditUser(null)}><Icon name="close" size={13} /></button>
               </div>
               <div className="form-row">
                 <div className="form-group">
@@ -442,14 +443,14 @@ export default function PengaturanLanjutan() {
                     onChange={(e) => setEditUser({ ...editUser, password: e.target.value })} placeholder="kosongkan jika tidak diubah" />
                   <button type="button" className="pw-toggle" tabIndex={-1}
                     onClick={() => setEditUser({ ...editUser, lihat: !editUser.lihat })}>
-                    {editUser.lihat ? '🙈' : '👁️'}
+                    {editUser.lihat ? '' : ''}
                   </button>
                 </div>
               </div>
               <div className="flex gap-2 justify-end">
                 <button className="btn btn-outline" onClick={() => setEditUser(null)}>Batal</button>
                 <button className="btn btn-primary" onClick={simpanEditUser} disabled={prosesUser}>
-                  {prosesUser ? <><span className="spinner" /> Menyimpan...</> : '💾 Simpan Perubahan'}
+                  {prosesUser ? <><span className="spinner" /> Menyimpan...</> : ' Simpan Perubahan'}
                 </button>
               </div>
             </div>
@@ -458,18 +459,18 @@ export default function PengaturanLanjutan() {
           {/* Daftar akun login */}
           <div className="card" style={{ padding: 0 }}>
             <div className="card-header" style={{ padding: 16 }}>
-              <div className="card-title"><span className="nav-icon">🔑</span> Akun Login</div>
+              <div className="card-title"><span className="nav-icon"></span> Akun Login</div>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted">
                   {Array.isArray(authUsers) ? `${authUsers.length} akun` : '—'}
                 </span>
-                <button className="btn btn-sm btn-outline" onClick={muatAkunLogin}>🔄 Muat Ulang</button>
+                <button className="btn btn-sm btn-outline" onClick={muatAkunLogin}> Muat Ulang</button>
               </div>
             </div>
 
             {authUsers?.error ? (
               <div className="alert alert-warning" style={{ margin: 16 }}>
-                ⚠️ {authUsers.error}
+                 {authUsers.error}
                 <br />
                 <span className="text-xs">
                   Pastikan <code>SUPABASE_SERVICE_ROLE_KEY</code> sudah diset di Vercel → Settings → Environment Variables.
@@ -479,7 +480,7 @@ export default function PengaturanLanjutan() {
               <p className="text-muted text-center py-4">Memuat akun...</p>
             ) : authUsers.length === 0 ? (
               <div className="empty-state">
-                <div className="nav-icon" style={{ fontSize: 40 }}>👤</div>
+                <div className="nav-icon" style={{ fontSize: 40 }}></div>
                 <h3>Belum ada akun</h3>
               </div>
             ) : (
@@ -514,11 +515,9 @@ export default function PengaturanLanjutan() {
                           <td className="text-right">
                             <div className="flex gap-1 justify-end">
                               <button className="btn btn-sm btn-outline"
-                                onClick={() => setEditUser({ id: u.id, email: u.email, nama: u.nama || info?.nama || '', password: '', lihat: false })}>
-                                ✏️
-                              </button>
+                                onClick={() => setEditUser({ id: u.id, email: u.email, nama: u.nama || info?.nama || '', password: '', lihat: false })}><Icon name="sliders" size={13} /></button>
                               {!diriSendiri && (
-                                <button className="btn btn-sm btn-danger" onClick={() => hapusAkunLogin(u)}>✕</button>
+                                <button className="btn btn-sm btn-danger" onClick={() => hapusAkunLogin(u)}><Icon name="close" size={13} /></button>
                               )}
                             </div>
                           </td>
@@ -536,11 +535,11 @@ export default function PengaturanLanjutan() {
       {/* ===== SISTEM ===== */}
       {tab === 'sistem' && (
         <div className="card">
-          <div className="card-header"><div className="card-title"><span className="nav-icon">🛠️</span> Sistem & Sinkronisasi</div></div>
+          <div className="card-header"><div className="card-title"><Icon name="sliders" size={16} /> Sistem & Sinkronisasi</div></div>
 
           <div className="sys-row">
             <div>
-              <div className="font-bold">☁️ Penyimpanan Cloud</div>
+              <div className="font-bold"> Penyimpanan Cloud</div>
               <div className="text-sm text-muted">
                 Semua data tersimpan otomatis di Supabase (cloud), bukan di laptop. Laptop mati atau ganti perangkat
                 tidak menghilangkan data — cukup login dengan akun yang sama.
@@ -551,7 +550,7 @@ export default function PengaturanLanjutan() {
 
           <div className="sys-row">
             <div>
-              <div className="font-bold">🔐 Keamanan Data</div>
+              <div className="font-bold"> Keamanan Data</div>
               <div className="text-sm text-muted">
                 Akses database dikunci dengan Row Level Security: hanya pengguna yang sudah login yang bisa membaca & menulis.
               </div>
@@ -561,7 +560,7 @@ export default function PengaturanLanjutan() {
 
           <div className="sys-row">
             <div>
-              <div className="font-bold">💾 Backup Manual</div>
+              <div className="font-bold"> Backup Manual</div>
               <div className="text-sm text-muted">
                 Unduh salinan data penting (produk, transaksi, pelanggan) dalam format Excel untuk arsip pribadi.
               </div>
@@ -571,7 +570,7 @@ export default function PengaturanLanjutan() {
 
           <div className="sys-row">
             <div>
-              <div className="font-bold">📱 Akses Mobile</div>
+              <div className="font-bold"> Akses Mobile</div>
               <div className="text-sm text-muted">
                 Buka <b>seruntoel.vercel.app</b> di HP, lalu pilih "Tambahkan ke Home Screen" agar seperti aplikasi.
               </div>
@@ -581,7 +580,7 @@ export default function PengaturanLanjutan() {
 
           <div className="sys-row">
             <div>
-              <div className="font-bold">🔄 Versi Aplikasi</div>
+              <div className="font-bold"> Versi Aplikasi</div>
               <div className="text-sm text-muted">Seruntul Advanced · Next.js + Supabase</div>
             </div>
             <span className="badge badge-neutral">v1.0</span>

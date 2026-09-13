@@ -3,6 +3,7 @@ import { supabase } from '../../utils/supabaseClient'
 import { useAuth } from '../../components/AuthProvider'
 import AppLayout from '../../components/AppLayout'
 import { logAudit } from '../../utils/audit'
+import Icon from '../../components/Icons'
 
 const hariIni = () => new Date().toISOString().slice(0, 10)
 const tglID = (v) => v ? new Date(v).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'
@@ -85,7 +86,7 @@ export default function Kadaluarsa() {
       if (error) throw error
       logAudit({ aksi: 'tambah_batch', user, sheetTarget: 'expired_products',
         detail: { produk: p.nama_produk, qty, tgl_kadaluarsa: form.tgl_kadaluarsa } })
-      setMsg('✅ Batch dicatat')
+      setMsg(' Batch dicatat')
       setForm({ produk_id: '', batch_id: '', tgl_produksi: hariIni(), masa_simpan: '3', tgl_kadaluarsa: '', qty: '' })
       fetchData()
     } catch (err) { setError(err.message) }
@@ -138,7 +139,7 @@ export default function Kadaluarsa() {
   return (
     <AppLayout title="Produk Kadaluarsa" subtitle="Pantau masa simpan & batch produksi">
       {msg && <div className="alert alert-success">{msg}</div>}
-      {error && <div className="alert alert-danger">⚠️ {error}</div>}
+      {error && <div className="alert alert-danger"> {error}</div>}
 
       <div className="metrics-grid">
         <div className="metric-card"><div className="metric-label">Total Batch</div><div className="metric-value text-primary">{stat.total}</div></div>
@@ -149,7 +150,7 @@ export default function Kadaluarsa() {
 
       {stat.kritis + stat.kadaluarsa > 0 && (
         <div className="alert alert-warning">
-          ⚠️ Ada <b>{stat.kritis + stat.kadaluarsa} batch</b> perlu tindakan segera. Prioritaskan menjual/mengolah batch terdekat kadaluarsa.
+           Ada <b>{stat.kritis + stat.kadaluarsa} batch</b> perlu tindakan segera. Prioritaskan menjual/mengolah batch terdekat kadaluarsa.
         </div>
       )}
 
@@ -198,10 +199,10 @@ export default function Kadaluarsa() {
 
       <div className="card" style={{ padding: 0 }}>
         <div className="card-header" style={{ padding: 16 }}>
-          <div className="card-title"><span className="nav-icon">📦</span> Daftar Batch</div>
+          <div className="card-title"><Icon name="box" size={16} /> Daftar Batch</div>
           <div className="flex flex-wrap gap-2">
             {[
-              { k: 'perlu', l: '⚠️ Perlu Tindakan' },
+              { k: 'perlu', l: ' Perlu Tindakan' },
               { k: 'semua', l: 'Semua' },
               { k: 'aman', l: 'Aman' },
               { k: 'kadaluarsa', l: 'Kadaluarsa' },
@@ -242,7 +243,7 @@ export default function Kadaluarsa() {
                           defaultValue={d.sisa_qty || 0} onBlur={(e) => ubahSisa(d, e.target.value)} />
                       </td>
                       <td><span className={`badge ${BADGE[d.kondisi]}`}>{LABEL[d.kondisi]}</span></td>
-                      <td className="text-right"><button className="btn btn-sm btn-danger" onClick={() => hapus(d)}>✕</button></td>
+                      <td className="text-right"><button className="btn btn-sm btn-danger" onClick={() => hapus(d)}><Icon name="close" size={13} /></button></td>
                     </tr>
                   ))}
                 </tbody>

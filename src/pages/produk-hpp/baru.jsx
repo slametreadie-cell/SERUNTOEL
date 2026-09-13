@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import { supabase } from '../../utils/supabaseClient'
 import { useAuth } from '../../components/AuthProvider'
 import AppLayout from '../../components/AppLayout'
+import Icon from '../../components/Icons'
 
 const formatRupiah = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
@@ -203,7 +204,7 @@ export default function ProdukBaru() {
           <input className="form-control" placeholder="Nama" value={r.nama} onChange={(e) => updateRow(setter, rows, i, 'nama', e.target.value)} />
           <input className="form-control" type="number" placeholder="Qty" value={r.qty} onChange={(e) => updateRow(setter, rows, i, 'qty', e.target.value)} />
           <input className="form-control" type="number" placeholder="Harga" value={r.harga} onChange={(e) => updateRow(setter, rows, i, 'harga', e.target.value)} />
-          <button type="button" className="btn btn-sm btn-danger" onClick={() => removeRow(setter, rows, i)}>✕</button>
+          <button type="button" className="btn btn-sm btn-danger" onClick={() => removeRow(setter, rows, i)}><Icon name="close" size={13} /></button>
         </div>
       ))}
       <button type="button" className="btn btn-sm btn-outline" onClick={() => addRow(setter, rows)}>＋ Tambah Baris</button>
@@ -217,12 +218,12 @@ export default function ProdukBaru() {
   return (
     <AppLayout title={isEdit ? 'Edit Produk' : 'Produk Baru'} subtitle="Kalkulasi HPP otomatis">
       <form onSubmit={handleSubmit}>
-        {error && <div className="alert alert-danger">⚠️ {error}</div>}
+        {error && <div className="alert alert-danger"> {error}</div>}
 
         <div className="grid-2">
           {/* ===== Kolom kiri: Info Produk ===== */}
           <div className="card">
-            <div className="card-header"><div className="card-title"><span className="nav-icon">📦</span> Informasi Produk</div></div>
+            <div className="card-header"><div className="card-title"><Icon name="box" size={16} /> Informasi Produk</div></div>
 
             <div className="form-group">
               <label className="form-label">Nama Produk *</label>
@@ -248,7 +249,7 @@ export default function ProdukBaru() {
               <label className="form-label">Foto Produk</label>
               <div className="flex items-center gap-3">
                 <div className="foto-box" onClick={() => document.getElementById('fotoInput').click()}>
-                  {fotoPreview ? <img src={fotoPreview} alt="preview" /> : <span className="text-muted">📷<br /><small>Klik untuk upload</small></span>}
+                  {fotoPreview ? <img src={fotoPreview} alt="preview" /> : <span className="text-muted"><br /><small>Klik untuk upload</small></span>}
                 </div>
                 <input id="fotoInput" type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFoto} />
                 <div className="text-sm text-muted">
@@ -262,7 +263,7 @@ export default function ProdukBaru() {
 
           {/* ===== Kolom kanan: Kalkulasi HPP ===== */}
           <div className="card">
-            <div className="card-header"><div className="card-title"><span className="nav-icon">🧮</span> Kalkulasi HPP</div></div>
+            <div className="card-header"><div className="card-title"><Icon name="barChart" size={16} /> Kalkulasi HPP</div></div>
 
             <div className="form-row">
               <div className="form-group">
@@ -348,11 +349,11 @@ export default function ProdukBaru() {
             <div className="flex gap-2">
               <button type="button" className="btn btn-outline" onClick={() => router.push('/produk-hpp')}>Batal</button>
               <button type="submit" className="btn btn-primary" disabled={saving || uploading}>
-                {saving || uploading ? <><span className="spinner" /> Menyimpan...</> : '💾 Simpan Produk'}
+                {saving || uploading ? <><span className="spinner" /> Menyimpan...</> : ' Simpan Produk'}
               </button>
             </div>
           </div>
-          {rugi && <div className="alert alert-danger mt-3 mb-0" style={{ marginBottom: 0 }}>⚠️ Harga jual lebih rendah dari HPP — Anda akan RUGI {formatRupiah(hppPerUnit - hargaJual)} per unit!</div>}
+          {rugi && <div className="alert alert-danger mt-3 mb-0" style={{ marginBottom: 0 }}> Harga jual lebih rendah dari HPP — Anda akan RUGI {formatRupiah(hppPerUnit - hargaJual)} per unit!</div>}
         </div>
       </form>
 

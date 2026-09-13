@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../utils/supabaseClient'
 import { useAuth } from '../components/AuthProvider'
 import AppLayout from '../components/AppLayout'
+import Icon from '../components/Icons'
 
 const rp = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
@@ -146,7 +147,7 @@ export default function Diagnosis() {
 
   return (
     <AppLayout title="Diagnosis Bisnis" subtitle="Skor kesehatan & rekomendasi otomatis">
-      {error && <div className="alert alert-danger">⚠️ {error}</div>}
+      {error && <div className="alert alert-danger"> {error}</div>}
 
       {loading ? <p className="text-muted text-center py-4">Menganalisis data 30 hari terakhir...</p> : (
         <>
@@ -167,7 +168,7 @@ export default function Diagnosis() {
 
           {/* Komponen skor */}
           <div className="card">
-            <div className="card-header"><div className="card-title"><span className="nav-icon">📊</span> Rincian Skor</div></div>
+            <div className="card-header"><div className="card-title"><Icon name="barChart" size={16} /> Rincian Skor</div></div>
             {KOMPONEN.map((k) => {
               const v = diag.skor[k.k]
               return (
@@ -188,12 +189,12 @@ export default function Diagnosis() {
           {/* Rekomendasi */}
           <div className="card">
             <div className="card-header">
-              <div className="card-title"><span className="nav-icon">💡</span> Rekomendasi</div>
+              <div className="card-title"><Icon name="pulse" size={16} /> Rekomendasi</div>
               <span className="text-sm text-muted">{diag.rekom.length} temuan</span>
             </div>
             {diag.rekom.map((r, i) => (
               <div key={i} className={`rekom rekom-${r.p}`}>
-                <div className="rekom-icon">{r.p === 'tinggi' ? '🔴' : r.p === 'sedang' ? '🟠' : r.p === 'baik' ? '🟢' : '🔵'}</div>
+                <div className="rekom-icon">{r.p === 'tinggi' ? '' : r.p === 'sedang' ? '' : r.p === 'baik' ? '' : ''}</div>
                 <div>
                   <div className="font-bold">{r.t}</div>
                   <div className="text-sm text-muted">{r.d}</div>
@@ -216,7 +217,7 @@ export default function Diagnosis() {
           {diag.produkList.length > 0 && (
             <div className="card" style={{ padding: 0 }}>
               <div className="card-header" style={{ padding: 16 }}>
-                <div className="card-title"><span className="nav-icon">🏆</span> Produk Teratas</div>
+                <div className="card-title"><Icon name="gem" size={16} /> Produk Teratas</div>
                 <span className="text-sm text-muted">konsentrasi {diag.konsentrasi.toFixed(0)}%</span>
               </div>
               <div className="table-wrap">

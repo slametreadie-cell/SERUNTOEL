@@ -198,19 +198,19 @@ export default function POS() {
       const { data, error } = await supabase
         .from('vouchers').select('*').ilike('kode', kode).eq('aktif', true).limit(1).maybeSingle()
       if (error) throw error
-      if (!data) { setVoucher(null); setVoucherMsg('❌ Voucher tidak ditemukan / tidak aktif'); return }
+      if (!data) { setVoucher(null); setVoucherMsg(' Voucher tidak ditemukan / tidak aktif'); return }
 
       const today = new Date().toISOString().slice(0, 10)
       if (data.tanggal_mulai && today < data.tanggal_mulai) {
-        setVoucher(null); setVoucherMsg(`❌ Voucher berlaku mulai ${data.tanggal_mulai}`); return
+        setVoucher(null); setVoucherMsg(` Voucher berlaku mulai ${data.tanggal_mulai}`); return
       }
       if (data.tanggal_berakhir && today > data.tanggal_berakhir) {
-        setVoucher(null); setVoucherMsg('❌ Voucher sudah kedaluwarsa'); return
+        setVoucher(null); setVoucherMsg(' Voucher sudah kedaluwarsa'); return
       }
       setVoucher(data)
-      setVoucherMsg(`✅ Voucher aktif: ${data.tipe === 'persen' ? `${data.nilai}%` : formatRupiah(data.nilai)}`)
+      setVoucherMsg(` Voucher aktif: ${data.tipe === 'persen' ? `${data.nilai}%` : formatRupiah(data.nilai)}`)
     } catch (e) {
-      setVoucherMsg('❌ ' + e.message)
+      setVoucherMsg(' ' + e.message)
     } finally {
       setCekPod(false)
     }
@@ -233,7 +233,7 @@ export default function POS() {
     setMember(data)
     setCustomer(data.nama)
     setPoinPakai('')
-    setMemberMsg(`✅ ${data.nama} — ${data.poin} poin (${TIER_EMOJI[data.tier] || ''} ${data.tier})`)
+    setMemberMsg(` ${data.nama} — ${data.poin} poin (${TIER_EMOJI[data.tier] || ''} ${data.tier})`)
   }
 
   const buatMemberBaru = async () => {
@@ -243,9 +243,9 @@ export default function POS() {
       .from('loyalty_members')
       .insert({ nama, kontak: null, poin: 0, tier: 'bronze', total_transaksi: 0, total_belanja: 0 })
       .select().single()
-    if (error) { setMemberMsg('❌ ' + error.message); return }
+    if (error) { setMemberMsg(' ' + error.message); return }
     setMember(data)
-    setMemberMsg(`✅ Member baru: ${data.nama}`)
+    setMemberMsg(` Member baru: ${data.nama}`)
   }
 
   // ===== Checkout =====
@@ -618,7 +618,7 @@ export default function POS() {
                 <div className="member-box mt-2">
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="font-bold">{TIER_EMOJI[member.tier] || '🥉'} {member.nama}</div>
+                      <div className="font-bold">{TIER_EMOJI[member.tier] || ''} {member.nama}</div>
                       <div className="text-xs text-muted">Tier {member.tier} · {member.poin} poin</div>
                     </div>
                     <button type="button" className="btn btn-sm btn-outline" onClick={() => { setMember(null); setPoinPakai(''); setMemberMsg('') }}>Ganti</button>

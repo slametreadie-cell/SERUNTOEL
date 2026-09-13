@@ -3,6 +3,7 @@ import { supabase } from '../../utils/supabaseClient'
 import { useAuth } from '../../components/AuthProvider'
 import AppLayout from '../../components/AppLayout'
 import { logAudit } from '../../utils/audit'
+import Icon from '../../components/Icons'
 
 const formatRupiah = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
@@ -70,7 +71,7 @@ export default function Waste() {
       logAudit({ aksi: 'waste', user, sheetTarget: 'waste_logs',
         detail: { produk: p.nama_produk, qty, alasan: form.alasan, biaya: hpp } })
 
-      setMsg(`✅ Waste dicatat — kerugian ${formatRupiah(hpp)}`)
+      setMsg(` Waste dicatat — kerugian ${formatRupiah(hpp)}`)
       setForm({ ...form, produk_id: '', qty_waste: '', petugas: '' })
       fetchData()
     } catch (err) { setError(err.message) }
@@ -100,7 +101,7 @@ export default function Waste() {
   return (
     <AppLayout title="Waste Log" subtitle="Catat produk rusak & kerugian">
       {msg && <div className="alert alert-success">{msg}</div>}
-      {error && <div className="alert alert-danger">⚠️ {error}</div>}
+      {error && <div className="alert alert-danger"> {error}</div>}
 
       <div className="metrics-grid">
         <div className="metric-card"><div className="metric-label">Total Kerugian</div><div className="metric-value text-danger">{formatRupiah(stat.biaya)}</div></div>
@@ -111,7 +112,7 @@ export default function Waste() {
 
       <form onSubmit={simpan}>
         <div className="card">
-          <div className="card-header"><div className="card-title"><span className="nav-icon">🗑️</span> Catat Waste Baru</div></div>
+          <div className="card-header"><div className="card-title"><Icon name="trash" size={16} /> Catat Waste Baru</div></div>
           <div className="form-row">
             <div className="form-group" style={{ flex: 2 }}>
               <label className="form-label">Produk *</label>
@@ -153,7 +154,7 @@ export default function Waste() {
           )}
           <div className="flex justify-end">
             <button type="submit" className="btn btn-danger" disabled={saving}>
-              {saving ? <><span className="spinner" /> Menyimpan...</> : '🗑️ Catat Waste'}
+              {saving ? <><span className="spinner" /> Menyimpan...</> : ' Catat Waste'}
             </button>
           </div>
         </div>
@@ -161,20 +162,20 @@ export default function Waste() {
 
       <div className="card" style={{ padding: 0 }}>
         <div className="card-header" style={{ padding: 16 }}>
-          <div className="card-title"><span className="nav-icon">📋</span> Riwayat Waste</div>
+          <div className="card-title"><Icon name="clipboard" size={16} /> Riwayat Waste</div>
         </div>
         <div style={{ padding: '0 16px 12px' }} className="flex flex-wrap gap-2">
           <input className="form-control" type="date" style={{ maxWidth: 165 }} value={dari} onChange={(e) => setDari(e.target.value)} />
           <span className="text-muted text-sm">s/d</span>
           <input className="form-control" type="date" style={{ maxWidth: 165 }} value={sampai} onChange={(e) => setSampai(e.target.value)} />
-          <input className="form-control" style={{ maxWidth: 200 }} placeholder="🔍 Cari produk/alasan..."
+          <input className="form-control" style={{ maxWidth: 200 }} placeholder="Cari produk/alasan..."
             value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
 
         {loading ? <p className="text-muted text-center py-4">Memuat...</p>
           : filtered.length === 0 ? (
             <div className="empty-state">
-              <div className="nav-icon" style={{ fontSize: 40 }}>🗑️</div>
+              <div className="nav-icon" style={{ fontSize: 40 }}></div>
               <h3>Belum ada waste</h3>
               <p className="text-sm">Bagus! Tidak ada produk terbuang pada periode ini.</p>
             </div>
@@ -191,7 +192,7 @@ export default function Waste() {
                       <td><span className="badge badge-warning">{w.alasan || '—'}</span></td>
                       <td className="text-right text-danger font-bold">{formatRupiah(w.biaya_hpp)}</td>
                       <td className="text-muted text-xs">{w.petugas || '—'}</td>
-                      <td className="text-right"><button className="btn btn-sm btn-danger" onClick={() => hapus(w)}>✕</button></td>
+                      <td className="text-right"><button className="btn btn-sm btn-danger" onClick={() => hapus(w)}><Icon name="close" size={13} /></button></td>
                     </tr>
                   ))}
                   <tr style={{ background: 'var(--bg)' }}>

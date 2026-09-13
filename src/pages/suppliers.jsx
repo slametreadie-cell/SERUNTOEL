@@ -4,6 +4,7 @@ import { supabase } from '../utils/supabaseClient'
 import { useAuth } from '../components/AuthProvider'
 import AppLayout from '../components/AppLayout'
 import { logAudit } from '../utils/audit'
+import Icon from '../components/Icons'
 
 const formatRupiah = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
@@ -27,7 +28,7 @@ export default function Suppliers() {
     if (!confirm(`Hapus supplier "${s.nama}"?`)) return
     await supabase.from('suppliers').delete().eq('id', s.id)
     logAudit({ aksi: 'hapus_supplier', user, sheetTarget: 'suppliers', detail: { nama: s.nama } })
-    setMsg(`✅ Supplier ${s.nama} dihapus`)
+    setMsg(` Supplier ${s.nama} dihapus`)
     fetchData()
     setTimeout(() => setMsg(''), 3000)
   }
@@ -41,7 +42,7 @@ export default function Suppliers() {
       rating: Number(editRow.rating) || 0,
     }).eq('id', editRow.id)
     logAudit({ aksi: 'ubah_supplier', user, sheetTarget: 'suppliers', detail: { nama: editRow.nama } })
-    setMsg('✅ Data supplier diperbarui')
+    setMsg(' Data supplier diperbarui')
     setEditRow(null)
     fetchData()
     setTimeout(() => setMsg(''), 3000)
@@ -69,19 +70,19 @@ export default function Suppliers() {
     <AppLayout title="Supplier" subtitle="Pemasok bahan baku">
       <div className="card" style={{ padding: 16 }}>
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <input className="form-control" style={{ maxWidth: 280, flex: 1 }} placeholder="🔍 Cari nama/bahan utama..." value={search} onChange={(e) => setSearch(e.target.value)} />
+          <input className="form-control" style={{ maxWidth: 280, flex: 1 }} placeholder="Cari nama/bahan utama..." value={search} onChange={(e) => setSearch(e.target.value)} />
           <Link href="/suppliers/tambah" className="btn btn-primary">＋ Supplier</Link>
         </div>
       </div>
 
       {msg && <div className="alert alert-success">{msg}</div>}
-      {error && <div className="alert alert-danger">⚠️ {error}</div>}
+      {error && <div className="alert alert-danger"> {error}</div>}
 
       {editRow && (
         <div className="card" style={{ border: '2px solid var(--primary)' }}>
           <div className="card-header">
-            <div className="card-title"><span className="nav-icon">✏️</span> Ubah Supplier</div>
-            <button className="btn btn-sm btn-outline" onClick={() => setEditRow(null)}>✕</button>
+            <div className="card-title"><Icon name="sliders" size={16} /> Ubah Supplier</div>
+            <button className="btn btn-sm btn-outline" onClick={() => setEditRow(null)}><Icon name="close" size={13} /></button>
           </div>
           <div className="form-row">
             <div className="form-group">
@@ -110,14 +111,14 @@ export default function Suppliers() {
           </div>
           <div className="flex gap-2 justify-end">
             <button className="btn btn-outline" onClick={() => setEditRow(null)}>Batal</button>
-            <button className="btn btn-primary" onClick={simpanEditSupplier}>💾 Simpan</button>
+            <button className="btn btn-primary" onClick={simpanEditSupplier}> Simpan</button>
           </div>
         </div>
       )}
 
       <div className="card" style={{ padding: 0 }}>
         <div className="card-header" style={{ padding: 16 }}>
-          <div className="card-title"><span className="nav-icon">🏭</span> Daftar Supplier</div>
+          <div className="card-title"><Icon name="truck" size={16} /> Daftar Supplier</div>
           <span className="text-sm text-muted">{filtered.length} supplier</span>
         </div>
 
@@ -125,7 +126,7 @@ export default function Suppliers() {
           <p className="text-muted text-center py-4">Memuat...</p>
         ) : filtered.length === 0 ? (
           <div className="empty-state">
-            <div className="nav-icon" style={{ fontSize: 40 }}>🏭</div>
+            <div className="nav-icon" style={{ fontSize: 40 }}></div>
             <h3>Belum ada supplier</h3>
             <p className="text-sm">Tambahkan pemasok bahan baku Anda.</p>
           </div>
@@ -148,8 +149,8 @@ export default function Suppliers() {
                     <td className="text-right">
                       <div className="flex gap-1 justify-end">
                         <button className="btn btn-sm btn-outline"
-                          onClick={() => setEditRow({ id: s.id, nama: s.nama, kontak: s.kontak || '', bahan_utama: s.bahan_utama || '', alamat: s.alamat || '', rating: s.rating || 0 })}>✏️</button>
-                        <button className="btn btn-sm btn-danger" onClick={() => hapusSupplier(s)}>✕</button>
+                          onClick={() => setEditRow({ id: s.id, nama: s.nama, kontak: s.kontak || '', bahan_utama: s.bahan_utama || '', alamat: s.alamat || '', rating: s.rating || 0 })}><Icon name="sliders" size={13} /></button>
+                        <button className="btn btn-sm btn-danger" onClick={() => hapusSupplier(s)}><Icon name="close" size={13} /></button>
                       </div>
                     </td>
                   </tr>

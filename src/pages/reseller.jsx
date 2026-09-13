@@ -3,6 +3,7 @@ import { supabase } from '../utils/supabaseClient'
 import { useAuth } from '../components/AuthProvider'
 import AppLayout from '../components/AppLayout'
 import { logAudit } from '../utils/audit'
+import Icon from '../components/Icons'
 
 const formatRupiah = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
@@ -47,7 +48,7 @@ export default function Reseller() {
       if (existing) await supabase.from('configuration').update({ value: String(diskonPersen) }).eq('id', existing.id)
       else await supabase.from('configuration').insert({ key: 'diskon_reseller', value: String(diskonPersen), keterangan: 'Diskon harga untuk channel reseller (%)' })
       logAudit({ aksi: 'ubah_diskon_reseller', user, sheetTarget: 'configuration', detail: { diskon_reseller: diskonPersen } })
-      setMsg(`✅ Diskon reseller diset ${diskonPersen}%`)
+      setMsg(` Diskon reseller diset ${diskonPersen}%`)
     } catch (e) { setError(e.message) }
     finally { setSaving(false); setTimeout(() => setMsg(''), 3000) }
   }
@@ -64,7 +65,7 @@ export default function Reseller() {
       })
       if (error) throw error
       logAudit({ aksi: 'tambah_reseller', user, sheetTarget: 'resellers', detail: { nama: form.nama, tier: form.tier } })
-      setMsg('✅ Reseller ditambahkan')
+      setMsg(' Reseller ditambahkan')
       setForm({ nama: '', kontak: '', alamat: '', tier: 'reguler', catatan: '', tgl_gabung: hariIni() })
       fetchData()
     } catch (err) { setError(err.message) }
@@ -96,7 +97,7 @@ export default function Reseller() {
   return (
     <AppLayout title="Reseller" subtitle="Mitra penjual & harga khusus">
       {msg && <div className="alert alert-success">{msg}</div>}
-      {error && <div className="alert alert-danger">⚠️ {error}</div>}
+      {error && <div className="alert alert-danger"> {error}</div>}
 
       <div className="metrics-grid">
         <div className="metric-card"><div className="metric-label">Total Reseller</div><div className="metric-value text-primary">{stat.total}</div></div>
@@ -107,7 +108,7 @@ export default function Reseller() {
 
       {/* Pengaturan harga reseller */}
       <div className="card">
-        <div className="card-header"><div className="card-title"><span className="nav-icon">🏷️</span> Harga Khusus Reseller</div></div>
+        <div className="card-header"><div className="card-title"><span className="nav-icon"></span> Harga Khusus Reseller</div></div>
         <div className="form-row">
           <div className="form-group">
             <label className="form-label">Diskon Otomatis (%)</label>
@@ -119,7 +120,7 @@ export default function Reseller() {
           </div>
           <div className="form-group" style={{ justifyContent: 'flex-end' }}>
             <button className="btn btn-primary" onClick={simpanDiskon} disabled={saving}>
-              {saving ? <><span className="spinner" /> Menyimpan...</> : '💾 Simpan Diskon'}
+              {saving ? <><span className="spinner" /> Menyimpan...</> : ' Simpan Diskon'}
             </button>
           </div>
         </div>
@@ -128,7 +129,7 @@ export default function Reseller() {
       {/* Form tambah */}
       <form onSubmit={simpan}>
         <div className="card">
-          <div className="card-header"><div className="card-title"><span className="nav-icon">📦</span> Tambah Reseller</div></div>
+          <div className="card-header"><div className="card-title"><Icon name="box" size={16} /> Tambah Reseller</div></div>
           <div className="form-row">
             <div className="form-group">
               <label className="form-label">Nama *</label>
@@ -173,13 +174,13 @@ export default function Reseller() {
       {/* Daftar */}
       <div className="card" style={{ padding: 0 }}>
         <div className="card-header" style={{ padding: 16 }}>
-          <div className="card-title"><span className="nav-icon">🤝</span> Daftar Reseller</div>
-          <input className="form-control" style={{ maxWidth: 220 }} placeholder="🔍 Cari..." value={search} onChange={(e) => setSearch(e.target.value)} />
+          <div className="card-title"><Icon name="handshake" size={16} /> Daftar Reseller</div>
+          <input className="form-control" style={{ maxWidth: 220 }} placeholder="Cari..." value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         {loading ? <p className="text-muted text-center py-4">Memuat...</p>
           : filtered.length === 0 ? (
             <div className="empty-state">
-              <div className="nav-icon" style={{ fontSize: 40 }}>📦</div>
+              <div className="nav-icon" style={{ fontSize: 40 }}></div>
               <h3>Belum ada reseller</h3>
               <p className="text-sm">Daftarkan mitra penjual untuk mendapat harga khusus.</p>
             </div>
@@ -199,7 +200,7 @@ export default function Reseller() {
                       <td className="text-muted text-sm">{tglID(r.tgl_gabung)}</td>
                       <td className="text-right">{r.total_transaksi || 0}</td>
                       <td className="text-right font-bold text-primary">{formatRupiah(r.total_belanja)}</td>
-                      <td className="text-right"><button className="btn btn-sm btn-danger" onClick={() => hapus(r)}>✕</button></td>
+                      <td className="text-right"><button className="btn btn-sm btn-danger" onClick={() => hapus(r)}><Icon name="close" size={13} /></button></td>
                     </tr>
                   ))}
                 </tbody>

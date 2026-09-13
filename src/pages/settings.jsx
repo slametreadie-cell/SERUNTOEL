@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../utils/supabaseClient'
 import { useAuth } from '../components/AuthProvider'
 import AppLayout from '../components/AppLayout'
+import Icon from '../components/Icons'
 
 export default function Settings() {
   const { user } = useAuth()
@@ -40,7 +41,7 @@ export default function Settings() {
     if (error) setMsg('Gagal: ' + error.message)
     else {
       setNewKategori('')
-      setMsg('✅ Kategori ditambahkan')
+      setMsg(' Kategori ditambahkan')
       fetchData()
     }
     setTimeout(() => setMsg(''), 3000)
@@ -62,7 +63,7 @@ export default function Settings() {
       <div className="grid-2">
         {/* Konfigurasi umum */}
         <div className="card">
-          <div className="card-header"><div className="card-title"><span className="nav-icon">⚙️</span> Konfigurasi Umum</div></div>
+          <div className="card-header"><div className="card-title"><Icon name="settings" size={16} /> Konfigurasi Umum</div></div>
           {config.map((c) => (
             <div className="form-group" key={c.id}>
               <label className="form-label">{c.key}</label>
@@ -78,7 +79,7 @@ export default function Settings() {
 
         {/* Identitas toko untuk struk */}
         <div className="card">
-          <div className="card-header"><div className="card-title"><span className="nav-icon">🧾</span> Identitas Toko (Struk)</div></div>
+          <div className="card-header"><div className="card-title"><Icon name="receipt" size={16} /> Identitas Toko (Struk)</div></div>
           {['nama_toko', 'alamat_toko', 'telepon_toko', 'footer_struk'].map((key) => {
             const row = config.find((c) => c.key === key)
             return (
@@ -104,12 +105,12 @@ export default function Settings() {
 
       {/* Kategori produk */}
       <div className="card">
-        <div className="card-header"><div className="card-title"><span className="nav-icon">🏷️</span> Kategori Produk</div></div>
+        <div className="card-header"><div className="card-title"><span className="nav-icon"></span> Kategori Produk</div></div>
 
         <div className="flex gap-2 mb-3">
           <input className="form-control" placeholder="Nama kategori baru" value={newKategori} onChange={(e) => setNewKategori(e.target.value)} />
           <input className="form-control" style={{ maxWidth: 90 }} type="number" placeholder="Margin %" value={newMargin} onChange={(e) => setNewMargin(e.target.value)} />
-          <button className="btn btn-primary" onClick={addKategori}>＋</button>
+          <button className="btn btn-primary" onClick={addKategori}><Icon name="plus" size={13} /></button>
         </div>
 
         {kategori.map((k) => (
@@ -118,14 +119,14 @@ export default function Settings() {
               <div className="font-bold">{k.nama}</div>
               <div className="text-xs text-muted">Margin default: {k.margin_persen}%</div>
             </div>
-            <button className="btn btn-sm btn-danger" onClick={() => hapusKategori(k.id)}>✕</button>
+            <button className="btn btn-sm btn-danger" onClick={() => hapusKategori(k.id)}><Icon name="close" size={13} /></button>
           </div>
         ))}
       </div>
 
       {/* Info akun */}
       <div className="card">
-        <div className="card-header"><div className="card-title"><span className="nav-icon">👤</span> Info Akun</div></div>
+        <div className="card-header"><div className="card-title"><Icon name="userCheck" size={16} /> Info Akun</div></div>
         <div className="hpp-row"><span>Email</span><b>{user?.email}</b></div>
         <div className="hpp-row"><span>User ID</span><b className="text-muted" style={{ fontSize: 12 }}>{user?.id}</b></div>
       </div>

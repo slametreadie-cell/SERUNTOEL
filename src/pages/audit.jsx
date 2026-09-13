@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../utils/supabaseClient'
 import { useAuth } from '../components/AuthProvider'
 import AppLayout from '../components/AppLayout'
+import Icon from '../components/Icons'
 
 const formatWaktu = (v) => {
   if (!v) return '—'
@@ -37,7 +38,7 @@ export default function Audit() {
     if (!confirm('Hapus SEMUA log lebih dari 30 hari?\n\nTindakan ini tidak bisa dibatalkan.')) return
     const batas = new Date(Date.now() - 30 * 86400000).toISOString()
     await supabase.from('audit_logs').delete().lt('tanggal', batas)
-    alert('✅ Log lama dibersihkan')
+    alert(' Log lama dibersihkan')
     fetchData()
   }
 
@@ -72,24 +73,24 @@ export default function Audit() {
       <div className="card" style={{ padding: 16 }}>
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex flex-wrap gap-2" style={{ flex: 1 }}>
-            <input className="form-control" style={{ maxWidth: 240 }} placeholder="🔍 Cari aktivitas..." value={search} onChange={(e) => setSearch(e.target.value)} />
+            <input className="form-control" style={{ maxWidth: 240 }} placeholder="Cari aktivitas..." value={search} onChange={(e) => setSearch(e.target.value)} />
             <select className="form-control" style={{ maxWidth: 190 }} value={aksiFilter} onChange={(e) => setAksiFilter(e.target.value)}>
               <option value="">Semua Aksi</option>
               {aksiList.map((a) => <option key={a} value={a}>{a}</option>)}
             </select>
           </div>
           <div className="flex gap-2">
-            <button className="btn btn-outline" onClick={fetchData}>🔄 Muat Ulang</button>
-            <button className="btn btn-outline" onClick={bersihkanLog}>🧹 Bersihkan &gt;30 hari</button>
+            <button className="btn btn-outline" onClick={fetchData}> Muat Ulang</button>
+            <button className="btn btn-outline" onClick={bersihkanLog}> Bersihkan &gt;30 hari</button>
           </div>
         </div>
       </div>
 
-      {error && <div className="alert alert-danger">⚠️ {error}</div>}
+      {error && <div className="alert alert-danger"> {error}</div>}
 
       <div className="card" style={{ padding: 0 }}>
         <div className="card-header" style={{ padding: 16 }}>
-          <div className="card-title"><span className="nav-icon">🔐</span> Aktivitas</div>
+          <div className="card-title"><Icon name="shield" size={16} /> Aktivitas</div>
           <span className="text-sm text-muted">{filtered.length} catatan</span>
         </div>
 
@@ -97,7 +98,7 @@ export default function Audit() {
           <p className="text-muted text-center py-4">Memuat...</p>
         ) : filtered.length === 0 ? (
           <div className="empty-state">
-            <div className="nav-icon" style={{ fontSize: 40 }}>🔐</div>
+            <div className="nav-icon" style={{ fontSize: 40 }}></div>
             <h3>Belum ada aktivitas</h3>
             <p className="text-sm">Catatan muncul saat ada transaksi, produk, atau pembelian baru.</p>
           </div>
@@ -119,7 +120,7 @@ export default function Audit() {
                         : '—'}
                     </td>
                     <td className="text-right">
-                      <button className="btn btn-sm btn-danger" onClick={() => hapusLog(d)}>✕</button>
+                      <button className="btn btn-sm btn-danger" onClick={() => hapusLog(d)}><Icon name="close" size={13} /></button>
                     </td>
                   </tr>
                 ))}

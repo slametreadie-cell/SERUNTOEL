@@ -3,6 +3,7 @@ import { supabase } from '../utils/supabaseClient'
 import { useAuth } from '../components/AuthProvider'
 import AppLayout from '../components/AppLayout'
 import { logAudit } from '../utils/audit'
+import Icon from '../components/Icons'
 
 const formatRupiah = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
@@ -68,7 +69,7 @@ export default function Karyawan() {
       }
       logAudit({ aksi: editId ? 'ubah_karyawan' : 'tambah_karyawan', user, sheetTarget: 'employees',
         detail: { nama: payload.nama, jabatan: payload.jabatan } })
-      setMsg(editId ? '✅ Data karyawan diperbarui' : '✅ Karyawan ditambahkan')
+      setMsg(editId ? ' Data karyawan diperbarui' : ' Karyawan ditambahkan')
       setForm({ nama: '', kontak: '', jabatan: JABATAN[0], gaji: '', tgl_masuk: hariIni(), shift: '', catatan: '' })
       setEditId(null)
       fetchData()
@@ -135,7 +136,7 @@ export default function Karyawan() {
   return (
     <AppLayout title="Karyawan & Absensi" subtitle="Data tim dan kehadiran">
       {msg && <div className="alert alert-success">{msg}</div>}
-      {error && <div className="alert alert-danger">⚠️ {error}</div>}
+      {error && <div className="alert alert-danger"> {error}</div>}
 
       <div className="metrics-grid">
         <div className="metric-card"><div className="metric-label">Total Karyawan</div><div className="metric-value text-primary">{stat.total}</div></div>
@@ -146,7 +147,7 @@ export default function Karyawan() {
 
       <div className="card" style={{ padding: 8 }}>
         <div className="flex flex-wrap gap-2">
-          {[{ k: 'karyawan', l: '👤 Data Karyawan' }, { k: 'absensi', l: '📅 Absensi Hari Ini' }, { k: 'rekap', l: '📊 Rekap 30 Hari' }].map((t) => (
+          {[{ k: 'karyawan', l: ' Data Karyawan' }, { k: 'absensi', l: ' Absensi Hari Ini' }, { k: 'rekap', l: ' Rekap 30 Hari' }].map((t) => (
             <button key={t.k} className={`btn btn-sm ${tab === t.k ? 'btn-primary' : 'btn-outline'}`} onClick={() => setTab(t.k)}>{t.l}</button>
           ))}
         </div>
@@ -158,7 +159,7 @@ export default function Karyawan() {
           <form onSubmit={simpanKaryawan}>
             <div className="card">
               <div className="card-header">
-                <div className="card-title"><span className="nav-icon">👤</span> {editId ? 'Ubah Karyawan' : 'Tambah Karyawan'}</div>
+                <div className="card-title"><Icon name="userCheck" size={16} /> {editId ? 'Ubah Karyawan' : 'Tambah Karyawan'}</div>
                 {editId && <button type="button" className="btn btn-sm btn-outline" onClick={() => { setEditId(null); setForm({ nama: '', kontak: '', jabatan: JABATAN[0], gaji: '', tgl_masuk: hariIni(), shift: '', catatan: '' }) }}>Batal</button>}
               </div>
               <div className="form-row">
@@ -193,7 +194,7 @@ export default function Karyawan() {
               </div>
               <div className="flex justify-end">
                 <button type="submit" className="btn btn-primary" disabled={saving}>
-                  {saving ? <><span className="spinner" /> Menyimpan...</> : editId ? '💾 Perbarui' : '＋ Tambah Karyawan'}
+                  {saving ? <><span className="spinner" /> Menyimpan...</> : editId ? ' Perbarui' : '＋ Tambah Karyawan'}
                 </button>
               </div>
             </div>
@@ -201,13 +202,13 @@ export default function Karyawan() {
 
           <div className="card" style={{ padding: 0 }}>
             <div className="card-header" style={{ padding: 16 }}>
-              <div className="card-title"><span className="nav-icon">📋</span> Daftar Karyawan</div>
-              <input className="form-control" style={{ maxWidth: 220 }} placeholder="🔍 Cari..." value={search} onChange={(e) => setSearch(e.target.value)} />
+              <div className="card-title"><Icon name="clipboard" size={16} /> Daftar Karyawan</div>
+              <input className="form-control" style={{ maxWidth: 220 }} placeholder="Cari..." value={search} onChange={(e) => setSearch(e.target.value)} />
             </div>
             {loading ? <p className="text-muted text-center py-4">Memuat...</p>
               : filtered.length === 0 ? (
                 <div className="empty-state">
-                  <div className="nav-icon" style={{ fontSize: 40 }}>👤</div>
+                  <div className="nav-icon" style={{ fontSize: 40 }}></div>
                   <h3>Belum ada karyawan</h3>
                   <p className="text-sm">Tambahkan data tim Anda.</p>
                 </div>
@@ -226,8 +227,8 @@ export default function Karyawan() {
                           <td className="text-right font-bold">{formatRupiah(k.gaji)}</td>
                           <td className="text-right">
                             <div className="flex gap-1 justify-end">
-                              <button className="btn btn-sm btn-outline" onClick={() => editKaryawan(k)}>✏️</button>
-                              <button className="btn btn-sm btn-danger" onClick={() => hapusKaryawan(k)}>✕</button>
+                              <button className="btn btn-sm btn-outline" onClick={() => editKaryawan(k)}><Icon name="sliders" size={13} /></button>
+                              <button className="btn btn-sm btn-danger" onClick={() => hapusKaryawan(k)}><Icon name="close" size={13} /></button>
                             </div>
                           </td>
                         </tr>
@@ -244,7 +245,7 @@ export default function Karyawan() {
       {tab === 'absensi' && (
         <div className="card">
           <div className="card-header">
-            <div className="card-title"><span className="nav-icon">📅</span> Absensi</div>
+            <div className="card-title"><Icon name="calendar" size={16} /> Absensi</div>
             <input className="form-control" type="date" style={{ maxWidth: 180 }} value={tanggalAbsen} onChange={(e) => setTanggalAbsen(e.target.value)} />
           </div>
 
@@ -279,7 +280,7 @@ export default function Karyawan() {
       {tab === 'rekap' && (
         <div className="card" style={{ padding: 0 }}>
           <div className="card-header" style={{ padding: 16 }}>
-            <div className="card-title"><span className="nav-icon">📊</span> Rekap Absensi (30 hari terakhir)</div>
+            <div className="card-title"><Icon name="barChart" size={16} /> Rekap Absensi (30 hari terakhir)</div>
           </div>
           {karyawan.length === 0 ? (
             <p className="text-muted text-sm" style={{ padding: 16 }}>Belum ada data.</p>

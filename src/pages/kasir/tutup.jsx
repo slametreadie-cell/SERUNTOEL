@@ -4,6 +4,7 @@ import { supabase } from '../../utils/supabaseClient'
 import { useAuth } from '../../components/AuthProvider'
 import AppLayout from '../../components/AppLayout'
 import { logAudit } from '../../utils/audit'
+import Icon from '../../components/Icons'
 
 const formatRupiah = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
@@ -105,8 +106,8 @@ export default function TutupKas() {
       })
 
       setMsg(rekap.selisih === 0
-        ? '✅ Kas seimbang!'
-        : `⚠️ Tersimpan — selisih ${formatRupiah(Math.abs(rekap.selisih))} (${rekap.selisih > 0 ? 'lebih' : 'kurang'})`)
+        ? ' Kas seimbang!'
+        : ` Tersimpan — selisih ${formatRupiah(Math.abs(rekap.selisih))} (${rekap.selisih > 0 ? 'lebih' : 'kurang'})`)
       setUangFisik(''); setCatatan('')
       fetchData()
     } catch (e) {
@@ -124,7 +125,7 @@ export default function TutupKas() {
       actions={<Link href="/pos" className="btn btn-outline btn-sm">← Kembali ke POS</Link>}
     >
       {msg && <div className="alert alert-success">{msg}</div>}
-      {error && <div className="alert alert-danger">⚠️ {error}</div>}
+      {error && <div className="alert alert-danger"> {error}</div>}
 
       {sudahDitutup && (
         <div className="alert alert-warning">
@@ -136,7 +137,7 @@ export default function TutupKas() {
       <div className="grid-2">
         {/* ===== Kiri: input ===== */}
         <div className="card">
-          <div className="card-header"><div className="card-title"><span className="nav-icon">🔒</span> Hitung Uang Laci</div></div>
+          <div className="card-header"><div className="card-title"><Icon name="lock" size={16} /> Hitung Uang Laci</div></div>
 
           <div className="form-group">
             <label className="form-label">Tanggal</label>
@@ -171,10 +172,10 @@ export default function TutupKas() {
           {rekap.fisik > 0 && (
             <div className={`alert ${rekap.selisih === 0 ? 'alert-success' : 'alert-warning'} mt-3`}>
               {rekap.selisih === 0
-                ? '✅ Kas seimbang, tidak ada selisih.'
+                ? ' Kas seimbang, tidak ada selisih.'
                 : rekap.selisih > 0
-                  ? `⚠️ Uang fisik LEBIH ${formatRupiah(rekap.selisih)} dari seharusnya.`
-                  : `⚠️ Uang fisik KURANG ${formatRupiah(Math.abs(rekap.selisih))} dari seharusnya.`}
+                  ? ` Uang fisik LEBIH ${formatRupiah(rekap.selisih)} dari seharusnya.`
+                  : ` Uang fisik KURANG ${formatRupiah(Math.abs(rekap.selisih))} dari seharusnya.`}
             </div>
           )}
 
@@ -185,13 +186,13 @@ export default function TutupKas() {
           </div>
 
           <button className="btn btn-primary btn-block" style={{ padding: 13 }} onClick={simpan} disabled={saving}>
-            {saving ? <><span className="spinner" /> Menyimpan...</> : '🔒 Simpan Tutup Kas'}
+            {saving ? <><span className="spinner" /> Menyimpan...</> : ' Simpan Tutup Kas'}
           </button>
         </div>
 
         {/* ===== Kanan: rekap penjualan ===== */}
         <div className="card">
-          <div className="card-header"><div className="card-title"><span className="nav-icon">📊</span> Penjualan {tanggal}</div></div>
+          <div className="card-header"><div className="card-title"><Icon name="barChart" size={16} /> Penjualan {tanggal}</div></div>
 
           <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(2,1fr)', marginBottom: 0 }}>
             <div className="metric-card">
@@ -226,14 +227,14 @@ export default function TutupKas() {
       {/* Riwayat */}
       <div className="card" style={{ padding: 0 }}>
         <div className="card-header" style={{ padding: 16 }}>
-          <div className="card-title"><span className="nav-icon">📜</span> Riwayat Tutup Kas</div>
+          <div className="card-title"><Icon name="fileText" size={16} /> Riwayat Tutup Kas</div>
           <span className="text-sm text-muted">{riwayat.length} catatan</span>
         </div>
         {loading ? (
           <p className="text-muted text-center py-4">Memuat...</p>
         ) : riwayat.length === 0 ? (
           <div className="empty-state">
-            <div className="nav-icon" style={{ fontSize: 40 }}>🔒</div>
+            <div className="nav-icon" style={{ fontSize: 40 }}></div>
             <h3>Belum ada tutup kas</h3>
             <p className="text-sm">Lakukan tutup kas setiap akhir shift.</p>
           </div>
@@ -252,7 +253,7 @@ export default function TutupKas() {
                     <td className="text-right">{formatRupiah(r.saldo_sistem)}</td>
                     <td className="text-right font-bold">{formatRupiah(r.uang_fisik)}</td>
                     <td className={`text-right font-bold ${Number(r.selisih) === 0 ? 'text-success' : 'text-danger'}`}>
-                      {Number(r.selisih) === 0 ? '✅ 0' : formatRupiah(r.selisih)}
+                      {Number(r.selisih) === 0 ? ' 0' : formatRupiah(r.selisih)}
                     </td>
                     <td className="text-muted text-xs">{r.user_email || '—'}</td>
                   </tr>

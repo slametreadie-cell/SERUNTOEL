@@ -5,6 +5,7 @@ import { supabase } from '../utils/supabaseClient'
 import { useAuth } from '../components/AuthProvider'
 import AppLayout from '../components/AppLayout'
 import { logAudit } from '../utils/audit'
+import Icon from '../components/Icons'
 
 const formatRupiah = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
@@ -100,7 +101,7 @@ export default function ProdukHPP() {
             <input
               className="form-control"
               style={{ maxWidth: 240 }}
-              placeholder="🔍 Cari produk..."
+              placeholder="Cari produk..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -121,21 +122,21 @@ export default function ProdukHPP() {
           </div>
           <div className="flex items-center gap-2">
             <button className={`btn btn-sm ${view === 'grid' ? 'btn-primary' : 'btn-outline'}`} onClick={() => setView('grid')}>▦</button>
-            <button className={`btn btn-sm ${view === 'table' ? 'btn-primary' : 'btn-outline'}`} onClick={() => setView('table')}>☰</button>
-            <Link href="/produk-hpp/duplikat" className="btn btn-outline">📄 Duplikat</Link>
+            <button className={`btn btn-sm ${view === 'table' ? 'btn-primary' : 'btn-outline'}`} onClick={() => setView('table')}><Icon name="menu" size={13} /></button>
+            <Link href="/produk-hpp/duplikat" className="btn btn-outline"> Duplikat</Link>
             <Link href="/produk-hpp/baru" className="btn btn-primary">＋ Produk Baru</Link>
           </div>
         </div>
       </div>
 
-      {error && <div className="alert alert-danger">⚠️ {error}</div>}
+      {error && <div className="alert alert-danger"> {error}</div>}
 
       {loading ? (
         <div className="card"><div className="empty-state"><div className="spinner" style={{ borderColor: 'var(--primary-light)', borderTopColor: 'var(--primary)', margin: '0 auto 12px' }} /><p className="text-muted">Memuat produk...</p></div></div>
       ) : filtered.length === 0 ? (
         <div className="card">
           <div className="empty-state">
-            <div className="nav-icon" style={{ fontSize: 48 }}>🍱</div>
+            <div className="nav-icon" style={{ fontSize: 48 }}></div>
             <h3>Belum ada produk</h3>
             <p className="text-sm">Tambahkan produk pertama Anda untuk mulai menghitung HPP.</p>
             <Link href="/produk-hpp/baru" className="btn btn-primary mt-3">＋ Tambah Produk</Link>
@@ -149,7 +150,7 @@ export default function ProdukHPP() {
                 {p.foto_url ? (
                   <img src={p.foto_url} alt={p.nama_produk} />
                 ) : (
-                  <div className="product-img-placeholder">🍱</div>
+                  <div className="product-img-placeholder"></div>
                 )}
               </div>
               <div className="product-body">
@@ -193,9 +194,9 @@ export default function ProdukHPP() {
                     <td className="text-right">
                       <div className="flex gap-1 justify-end">
                         <button className="btn btn-sm btn-outline" title="Ubah produk"
-                          onClick={(e) => { e.stopPropagation(); router.push(`/produk-hpp/${p.id}`) }}>✏️</button>
+                          onClick={(e) => { e.stopPropagation(); router.push(`/produk-hpp/${p.id}`) }}><Icon name="sliders" size={13} /></button>
                         <button className="btn btn-sm btn-danger" title="Hapus produk"
-                          onClick={(e) => hapusProduk(p, e)}>✕</button>
+                          onClick={(e) => hapusProduk(p, e)}><Icon name="close" size={13} /></button>
                       </div>
                     </td>
                   </tr>
