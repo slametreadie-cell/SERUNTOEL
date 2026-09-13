@@ -4,6 +4,8 @@ import { supabase } from '../utils/supabaseClient'
 import { useAuth } from '../components/AuthProvider'
 import AppLayout from '../components/AppLayout'
 import { logAudit } from '../utils/audit'
+import Icon from '../components/Icons'
+import { StatCard, SkeletonRows, EmptyBlock, StockBar } from '../components/DashboardWidgets'
 
 const formatRupiah = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
@@ -87,31 +89,24 @@ export default function Inventory() {
     <AppLayout title="Inventory" subtitle="Stok bahan baku, produk jadi, dan riwayat pembelian">
       {/* Metric */}
       <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(3,1fr)' }}>
-        <div className="metric-card">
-          <div className="metric-label">Bahan Baku</div>
-          <div className="metric-value text-primary">{bahan.length}</div>
-          <div className="text-sm text-muted mt-2">{bahanKritis} kritis</div>
-        </div>
-        <div className="metric-card">
-          <div className="metric-label">Produk Jadi</div>
-          <div className="metric-value text-primary">{produkJadi.length}</div>
-          <div className="text-sm text-muted mt-2">{produkKritis} stok menipis</div>
-        </div>
-        <div className="metric-card">
-          <div className="metric-label">Total Pembelian</div>
-          <div className="metric-value text-primary">{pembelian.length}</div>
-          <div className="text-sm text-muted mt-2">transaksi</div>
-        </div>
+        <StatCard label="Bahan Baku" value={loading ? '...' : bahan.length} icon="pot"
+          tone="primary" hint={`${bahanKritis} perlu restock`} />
+        <StatCard label="Produk Jadi" value={loading ? '...' : produkJadi.length} icon="box"
+          tone={produkKritis > 0 ? 'warning' : 'primary'} hint={`${produkKritis} stok menipis`} />
+        <StatCard label="Total Pembelian" value={loading ? '...' : pembelian.length} icon="truck"
+          hint="catatan pembelian" />
       </div>
 
       {/* Tabs */}
       <div className="flex gap-2 mb-3" style={{ overflowX: 'auto' }}>
         {[
-          { key: 'bahan', label: '🧂 Bahan Baku' },
-          { key: 'produk', label: '📦 Produk Jadi' },
-          { key: 'pembelian', label: '🛒 Pembelian' },
+          { key: 'bahan', label: 'Bahan Baku', icon: 'pot' },
+          { key: 'produk', label: 'Produk Jadi', icon: 'box' },
+          { key: 'pembelian', label: 'Pembelian', icon: 'truck' },
         ].map((t) => (
-          <button key={t.key} className={`btn btn-sm ${tab === t.key ? 'btn-primary' : 'btn-outline'}`} onClick={() => setTab(t.key)}>
+          <button key={t.key} className={`btn btn-sm ${tab === t.key ? 'btn-primary' : 'btn-outline'}`}
+            onClick={() => setTab(t.key)} aria-pressed={tab === t.key}>
+            <Icon name={t.icon} size={14} />
             {t.label}
           </button>
         ))}
@@ -119,21 +114,34 @@ export default function Inventory() {
 
       {/* Search */}
       <div className="card" style={{ padding: 16 }}>
-        <input
-          className="form-control"
-          placeholder={`🔍 Cari ${tab === 'bahan' ? 'bahan baku' : tab === 'produk' ? 'produk jadi' : 'pembelian'}...`}
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+        <div className="search-wrap">
+          <Icon name="search" size={15} className="search-icon" />
+          <input
+            className="form-control"
+            placeholder={`Cari ${tab === 'bahan' ? 'bahan baku' : tab === 'produk' ? 'produk jadi' : 'pembelian'}...`}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            aria-label="Cari data inventory"
+          />
+        </div>
       </div>
 
-      {error && <div className="alert alert-danger">⚠️ {error}</div>}
+      {error && (
+        <div className="alert alert-danger" role="alert">
+          <Icon name="alert" size={16} />
+          {error}
+        </div>
+      )}
 
       {editBahan && (
         <div className="card" style={{ border: '2px solid var(--primary)' }}>
           <div className="card-header">
-            <div className="card-title"><span className="nav-icon">✏️</span> Ubah Bahan — {editBahan.nama_bahan}</div>
-            <button className="btn btn-sm btn-outline" onClick={() => setEditBahan(null)}>✕</button>
+            <div className="card-title">
+              <Icon name="sliders" size={16} /> Ubah Bahan — {editBahan.nama_bahan}
+            </div>
+            <button className="btn btn-sm btn-outline" onClick={() => setEditBahan(null)} aria-label="Tutup form">
+              <Icon name="close" size={14} />
+            </button>
           </div>
           <div className="form-row">
             <div className="form-group">
@@ -159,28 +167,43 @@ export default function Inventory() {
           </p>
           <div className="flex gap-2 justify-end">
             <button className="btn btn-outline" onClick={() => setEditBahan(null)}>Batal</button>
-            <button className="btn btn-primary" onClick={simpanEditBahan}>💾 Simpan</button>
+            <button className="btn btn-primary" onClick={simpanEditBahan}>
+              <Icon name="checkSquare" size={15} /> Simpan
+            </button>
           </div>
         </div>
       )}
 
       {loading ? (
-        <div className="card"><p className="text-muted text-center">Memuat...</p></div>
+        <div className="card">
+          <SkeletonRows rows={6} />
+        </div>
       ) : (
         <>
           {/* ===== TAB: BAHAN BAKU ===== */}
           {tab === 'bahan' && (
             <div className="card" style={{ padding: 0 }}>
               <div className="card-header" style={{ padding: 16 }}>
-                <div className="card-title"><span className="nav-icon">🧂</span> Daftar Bahan Baku</div>
-                <Link href="/inventory/tambah-bahan" className="btn btn-primary btn-sm">＋ Bahan</Link>
+                <div className="card-title">
+                  <Icon name="pot" size={16} /> Daftar Bahan Baku
+                </div>
+                <Link href="/inventory/tambah-bahan" className="btn btn-primary btn-sm">
+                  <Icon name="plus" size={14} /> Bahan
+                </Link>
               </div>
               {bahanFiltered.length === 0 ? (
-                <div className="empty-state">
-                  <div className="nav-icon" style={{ fontSize: 40 }}>🧺</div>
-                  <h3>Belum ada bahan baku</h3>
-                  <p className="text-sm">Bahan baku otomatis tercatat saat Anda membuat resep/HPP produk.</p>
-                </div>
+                <EmptyBlock
+                  icon="pot"
+                  title={search ? 'Bahan tidak ditemukan' : 'Belum ada bahan baku'}
+                  message={search ? 'Coba kata kunci lain.' : 'Bahan baku otomatis tercatat saat Anda membuat resep/HPP produk.'}
+                  action={
+                    !search ? (
+                      <Link href="/inventory/tambah-bahan" className="btn btn-primary mt-3">
+                        Tambah Bahan
+                      </Link>
+                    ) : null
+                  }
+                />
               ) : (
                 <div className="table-wrap">
                   <table className="table">
@@ -204,8 +227,14 @@ export default function Inventory() {
                             <td className="text-right">
                               <div className="flex gap-1 justify-end">
                                 <button className="btn btn-sm btn-outline"
-                                  onClick={() => setEditBahan({ id: b.id, nama_bahan: b.nama_bahan, satuan: b.satuan || 'pcs', stok_minimum: b.stok_minimum || 0, status: b.status || 'aktif' })}>✏️</button>
-                                <button className="btn btn-sm btn-danger" onClick={() => hapusBahan(b)}>✕</button>
+                                  onClick={() => setEditBahan({ id: b.id, nama_bahan: b.nama_bahan, satuan: b.satuan || 'pcs', stok_minimum: b.stok_minimum || 0, status: b.status || 'aktif' })}
+                                  aria-label={`Ubah ${b.nama_bahan}`}>
+                                  <Icon name="sliders" size={13} />
+                                </button>
+                                <button className="btn btn-sm btn-danger" onClick={() => hapusBahan(b)}
+                                  aria-label={`Hapus ${b.nama_bahan}`}>
+                                  <Icon name="trash" size={13} />
+                                </button>
                               </div>
                             </td>
                           </tr>
@@ -222,14 +251,16 @@ export default function Inventory() {
           {tab === 'produk' && (
             <div className="card" style={{ padding: 0 }}>
               <div className="card-header" style={{ padding: 16 }}>
-                <div className="card-title"><span className="nav-icon">📦</span> Stok Produk Jadi</div>
+                <div className="card-title">
+                  <Icon name="box" size={16} /> Stok Produk Jadi
+                </div>
               </div>
               {produkFiltered.length === 0 ? (
-                <div className="empty-state">
-                  <div className="nav-icon" style={{ fontSize: 40 }}>📦</div>
-                  <h3>Belum ada produk</h3>
-                  <p className="text-sm">Tambahkan produk di menu Produk & HPP.</p>
-                </div>
+                <EmptyBlock
+                  icon="box"
+                  title={search ? 'Produk tidak ditemukan' : 'Belum ada produk'}
+                  message={search ? 'Coba kata kunci lain.' : 'Tambahkan produk di menu Produk & HPP.'}
+                />
               ) : (
                 <div className="table-wrap">
                   <table className="table">
@@ -264,15 +295,24 @@ export default function Inventory() {
           {tab === 'pembelian' && (
             <div className="card" style={{ padding: 0 }}>
               <div className="card-header" style={{ padding: 16 }}>
-                <div className="card-title"><span className="nav-icon">🛒</span> Riwayat Pembelian</div>
-                <Link href="/inventory/tambah-bahan" className="btn btn-primary btn-sm">＋ Pembelian</Link>
+                <div className="card-title">
+                  <Icon name="truck" size={16} /> Riwayat Pembelian
+                </div>
+                <Link href="/inventory/tambah-bahan" className="btn btn-primary btn-sm">
+                  <Icon name="plus" size={14} /> Pembelian
+                </Link>
               </div>
               {pembelian.length === 0 ? (
-                <div className="empty-state">
-                  <div className="nav-icon" style={{ fontSize: 40 }}>🛒</div>
-                  <h3>Belum ada pembelian</h3>
-                  <p className="text-sm">Catat pembelian bahan dari supplier.</p>
-                </div>
+                <EmptyBlock
+                  icon="truck"
+                  title="Belum ada pembelian"
+                  message="Catat pembelian bahan dari supplier agar harga & stok ikut terbarui."
+                  action={
+                    <Link href="/inventory/tambah-bahan" className="btn btn-primary mt-3">
+                      Catat Pembelian
+                    </Link>
+                  }
+                />
               ) : (
                 <div className="table-wrap">
                   <table className="table">
@@ -288,7 +328,10 @@ export default function Inventory() {
                           <td>{p.qty}</td>
                           <td className="text-primary font-bold">{formatRupiah(p.total)}</td>
                           <td className="text-right">
-                            <button className="btn btn-sm btn-danger" onClick={() => hapusPembelian(p)}>✕</button>
+                            <button className="btn btn-sm btn-danger" onClick={() => hapusPembelian(p)}
+                              aria-label="Hapus catatan pembelian">
+                              <Icon name="trash" size={13} />
+                            </button>
                           </td>
                         </tr>
                       ))}

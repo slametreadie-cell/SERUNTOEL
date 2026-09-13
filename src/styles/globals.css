@@ -427,6 +427,14 @@ i, .icon { font-style: normal; }
 }
 .pw-toggle:hover { opacity: 1; background: var(--card-alt); }
 
+/* ===== PENCARIAN (dipakai di banyak halaman) ===== */
+.search-wrap { position: relative; flex: 1; min-width: 0; }
+.search-wrap .form-control { padding-left: 32px; }
+.search-wrap .search-icon {
+  position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+  color: var(--muted); pointer-events: none;
+}
+
 /* ===== ICON ===== */
 .icon { flex-shrink: 0; vertical-align: middle; }
 .nav-item .icon { width: 17px; }

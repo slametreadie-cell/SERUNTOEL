@@ -711,12 +711,6 @@ export default function POS() {
         @media (min-width: 1024px) { .pos-layout { grid-template-columns: 1.4fr .9fr; align-items: start; } }
 
         .search-wrap { position: relative; flex: 1; }
-        .search-wrap .form-control { padding-left: 32px; }
-        .search-wrap :global(.search-icon) {
-          position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
-          color: var(--muted); pointer-events: none;
-        }
-
         .pos-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
         @media (min-width: 640px) { .pos-grid { grid-template-columns: repeat(3, 1fr); } }
         @media (min-width: 1200px) { .pos-grid { grid-template-columns: repeat(4, 1fr); } }
