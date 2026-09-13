@@ -40,3 +40,7 @@ create_bucket.js
 
 set_storage_policy.js
 run_storage_policy.js
+
+# folder output build lokal (jangan di-commit)
+tmp/
+dev/
