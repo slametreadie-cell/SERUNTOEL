@@ -67,6 +67,34 @@ export default function POS() {
   const [memberMsg, setMemberMsg] = useState('')
   const [poinPakai, setPoinPakai] = useState('')
 
+  // Telepon pelanggan (WA blast)
+  const [telp, setTelp] = useState('')
+  const [suggest, setSuggest] = useState([])
+  const [suggestOpen, setSuggestOpen] = useState(false)
+  const [suggestLoading, setSuggestLoading] = useState(false)
+
+  // Auto-suggest pelanggan dari tabel customers (nama / kontak)
+  const cariPelanggan = useCallback(async (q) => {
+    const query = (q || '').trim()
+    if (query.length < 2) { setSuggest([]); setSuggestOpen(false); return }
+    setSuggestLoading(true)
+    const { data } = await supabase
+      .from('customers')
+      .select('id, nama, kontak')
+      .or(`nama.ilike.%${query}%,kontak.ilike.%${query}%`)
+      .order('total_belanja', { ascending: false })
+      .limit(6)
+    if (data && data.length) {
+      setSuggest(data)
+      setSuggestOpen(true)
+    } else {
+      setSuggest([])
+      setSuggestOpen(false)
+    }
+    setSuggestLoading(false)
+  }, [])
+
+
   const fetchProduk = useCallback(async () => {
     setLoading(true)
     const { data, error } = await supabase.from('products').select('*').order('nama_produk')
@@ -154,6 +182,9 @@ export default function POS() {
     setMemberQuery('')
     setMemberMsg('')
     setPoinPakai('')
+    setTelp('')
+    setSuggest([])
+    setSuggestOpen(false)
   }
 
   // ===== Perhitungan =====
@@ -269,6 +300,7 @@ export default function POS() {
       }))
 
       const namaCustomer = (customer || member?.nama || '').trim()
+      const kontakCustomer = (telp || '').trim() || null
 
       // 0. Pelanggan
       let customerId = member?.customer_id || null
@@ -282,11 +314,12 @@ export default function POS() {
               total_transaksi: (existing.total_transaksi || 0) + 1,
               total_belanja: Number(existing.total_belanja || 0) + total,
               last_order: new Date().toISOString(),
+              ...(kontakCustomer && !existing.kontak ? { kontak: kontakCustomer } : {}),
             }).eq('id', existing.id)
             customerId = existing.id
           } else {
             const { data: baru } = await supabase.from('customers').insert({
-              nama: namaCustomer, channel, total_transaksi: 1,
+              nama: namaCustomer, kontak: kontakCustomer, channel, total_transaksi: 1,
               total_belanja: total, last_order: new Date().toISOString(),
             }).select('id').single()
             customerId = baru?.id || null
@@ -688,8 +721,42 @@ export default function POS() {
           )}
 
           <div className="form-group">
-            <label className="form-label">Nama Pelanggan (opsional)</label>
-            <input className="form-control" value={customer} onChange={(e) => setCustomer(e.target.value)} placeholder="Tanpa nama" />
+            <label className="form-label">Nama Pelanggan</label>
+            <div className="customer-suggest-wrap">
+              <input className="form-control" value={customer}
+                onChange={(e) => {
+                  setCustomer(e.target.value)
+                  cariPelanggan(e.target.value)
+                  setTelp('')
+                }}
+                placeholder="Ketik nama / telepon..." onBlur={() => setTimeout(() => setSuggestOpen(false), 200)}
+                aria-label="Nama pelanggan" />
+              {suggestOpen && suggest.length > 0 && (
+                <div className="customer-suggest-list">
+                  {suggest.map((s) => (
+                    <button key={s.id} type="button" className="customer-suggest-item"
+                      onMouseDown={(e) => {
+                        e.preventDefault()
+                        setCustomer(s.nama)
+                        setTelp(s.kontak || '')
+                        setSuggestOpen(false)
+                        setMemberQuery(s.nama)
+                      }}>
+                      <Icon name="users" size={14} />
+                      <span>{s.nama}</span>
+                      {s.kontak && <span className="text-xs text-muted"><Icon name="phone" size={11} /> {s.kontak}</span>}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">No. Telepon / WA</label>
+            <input className="form-control" value={telp} onChange={(e) => setTelp(e.target.value)}
+              placeholder="08xxxxxxxxxx" inputMode="tel" />
+            <div className="text-xs text-muted mt-1">Dipakai untuk WA blast promo & info member</div>
           </div>
 
           <button className="btn btn-primary btn-block" style={{ padding: 14, fontSize: 16 }} onClick={handleCheckout} disabled={saving || cart.length === 0}>
@@ -767,6 +834,21 @@ export default function POS() {
 
         .diskon-row { display: flex; align-items: center; gap: 8px; }
         .member-box { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px; background: var(--bg); }
+
+        .customer-suggest-wrap { position: relative; }
+        .customer-suggest-list {
+          position: absolute; z-index: 30; top: calc(100% + 4px); left: 0; right: 0;
+          background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm);
+          box-shadow: var(--shadow-lg); overflow: hidden;
+        }
+        .customer-suggest-item {
+          display: flex; align-items: center; gap: 8px; width: 100%;
+          padding: 9px 12px; text-align: left; font-size: 13px; cursor: pointer;
+          background: var(--card); color: var(--text); border: none; border-bottom: 1px solid var(--border);
+        }
+        .customer-suggest-item:last-child { border-bottom: none; }
+        .customer-suggest-item:hover { background: var(--primary-light); color: var(--primary-dark); }
+        .customer-suggest-item .text-xs { margin-left: auto; white-space: nowrap; }
       `}</style>
     </AppLayout>
   )

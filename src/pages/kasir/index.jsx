@@ -24,6 +24,7 @@ export default function Kasir() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [toko, setToko] = useState({})
+  const [kontakMap, setKontakMap] = useState({})
 
   const [dari, setDari] = useState(hariIni())
   const [sampai, setSampai] = useState(hariIni())
@@ -50,6 +51,15 @@ export default function Kasir() {
         items = it || []
       }
       setTransaksi((trx || []).map((t) => ({ ...t, items: items.filter((i) => i.transaksi_id === t.id) })))
+
+      const custIds = (trx || []).map((t) => t.customer_id).filter(Boolean)
+      let kontakMap = {}
+      if (custIds.length) {
+        const unique = [...new Set(custIds)]
+        const { data: custs } = await supabase.from('customers').select('id, kontak').in('id', unique)
+        ;(custs || []).forEach((c) => { if (c.kontak) kontakMap[c.id] = c.kontak })
+      }
+      setKontakMap(kontakMap)
 
       const { data: cfg } = await supabase.from('configuration').select('key, value')
       const cm = {}
@@ -166,7 +176,14 @@ export default function Kasir() {
                             <div className="font-bold" style={{ fontSize: 12 }}>{t.id_transaksi}</div>
                             {t.voucher_kode && <div className="text-xs text-muted"><Icon name="ticket" size={11} /> {t.voucher_kode}</div>}
                           </td>
-                          <td>{t.customer || '—'}</td>
+                          <td>
+                          <div>{t.customer || '—'}</div>
+                          {(t.customer_id && kontakMap[t.customer_id]) && (
+                            <div className="text-xs text-muted" style={{ whiteSpace: 'nowrap' }}>
+                              <Icon name="phone" size={10} /> {kontakMap[t.customer_id]}
+                            </div>
+                          )}
+                        </td>
                           <td><span className="badge badge-neutral">{METODE_LABEL[t.metode_pembayaran] || t.metode_pembayaran}</span></td>
                           <td><span className={`badge ${t.channel === 'reseller' ? 'badge-warning' : t.channel === 'online' ? 'badge-info' : 'badge-success'}`}>{t.channel || 'offline'}</span></td>
                           <td className="text-right">{t.items?.length || 0}</td>
