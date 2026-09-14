@@ -5,6 +5,7 @@ import { useAuth } from '../../components/AuthProvider'
 import AppLayout from '../../components/AppLayout'
 import { logAudit } from '../../utils/audit'
 import Icon from '../../components/Icons'
+import { SkeletonRows, EmptyBlock } from '../../components/DashboardWidgets'
 
 const formatRupiah = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
@@ -171,13 +172,13 @@ export default function DuplikatProduk() {
             value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
 
-        {loading ? <p className="text-muted text-center py-4">Memuat...</p>
+        {loading ? <div className="p-3"><SkeletonRows rows={4} /></div>
           : filtered.length === 0 ? (
-            <div className="empty-state">
-              <div className="nav-icon" style={{ fontSize: 40 }}></div>
-              <h3>Belum ada produk</h3>
-              <p className="text-sm">Tambahkan produk dulu di menu Produk & HPP.</p>
-            </div>
+            <EmptyBlock
+              icon="box"
+              title="Belum ada produk"
+              message="Tambahkan produk dulu di menu Produk & HPP."
+            />
           ) : (
             <div className="table-wrap">
               <table className="table">

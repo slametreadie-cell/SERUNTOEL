@@ -6,6 +6,7 @@ import { useAuth } from '../components/AuthProvider'
 import AppLayout from '../components/AppLayout'
 import { logAudit } from '../utils/audit'
 import Icon from '../components/Icons'
+import { StatCard, SkeletonStat, EmptyBlock } from '../components/DashboardWidgets'
 
 const formatRupiah = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
@@ -78,20 +79,11 @@ export default function ProdukHPP() {
 
   return (
     <AppLayout title="Produk & HPP" subtitle="Kelola produk, kalkulasi HPP, dan harga jual">
-      {/* Metric ringkas */}
+      {/* Ringkasan KPI */}
       <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(3,1fr)' }}>
-        <div className="metric-card">
-          <div className="metric-label">Total Produk</div>
-          <div className="metric-value text-primary">{totalProduk}</div>
-        </div>
-        <div className="metric-card">
-          <div className="metric-label">Nilai Stok</div>
-          <div className="metric-value text-primary">{formatRupiah(nilaiStok)}</div>
-        </div>
-        <div className="metric-card">
-          <div className="metric-label">Stok Menipis</div>
-          <div className="metric-value text-danger">{stokRendah}</div>
-        </div>
+        <StatCard label="Total Produk" value={totalProduk} icon="box" tone="primary" />
+        <StatCard label="Nilai Stok" value={formatRupiah(nilaiStok)} icon="wallet" tone="success" />
+        <StatCard label="Stok Menipis" value={stokRendah} icon="alert" tone="danger" />
       </div>
 
       {/* Toolbar */}
@@ -132,15 +124,17 @@ export default function ProdukHPP() {
       {error && <div className="alert alert-danger"> {error}</div>}
 
       {loading ? (
-        <div className="card"><div className="empty-state"><div className="spinner" style={{ borderColor: 'var(--primary-light)', borderTopColor: 'var(--primary)', margin: '0 auto 12px' }} /><p className="text-muted">Memuat produk...</p></div></div>
+        <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(3,1fr)' }}>
+          <SkeletonStat /><SkeletonStat /><SkeletonStat />
+        </div>
       ) : filtered.length === 0 ? (
         <div className="card">
-          <div className="empty-state">
-            <div className="nav-icon" style={{ fontSize: 48 }}></div>
-            <h3>Belum ada produk</h3>
-            <p className="text-sm">Tambahkan produk pertama Anda untuk mulai menghitung HPP.</p>
-            <Link href="/produk-hpp/baru" className="btn btn-primary mt-3">＋ Tambah Produk</Link>
-          </div>
+          <EmptyBlock
+            icon="box"
+            title="Belum ada produk"
+            message="Tambahkan produk pertama Anda untuk mulai menghitung HPP."
+            action={<Link href="/produk-hpp/baru" className="btn btn-primary mt-3">＋ Tambah Produk</Link>}
+          />
         </div>
       ) : view === 'grid' ? (
         <div className="product-grid">

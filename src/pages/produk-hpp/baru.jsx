@@ -4,6 +4,7 @@ import { supabase } from '../../utils/supabaseClient'
 import { useAuth } from '../../components/AuthProvider'
 import AppLayout from '../../components/AppLayout'
 import Icon from '../../components/Icons'
+import { SkeletonStat } from '../../components/DashboardWidgets'
 
 const formatRupiah = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
@@ -212,7 +213,13 @@ export default function ProdukBaru() {
   )
 
   if (loading) {
-    return <AppLayout title="Produk"><div className="card"><p className="text-muted">Memuat...</p></div></AppLayout>
+    return (
+      <AppLayout title="Produk">
+        <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(3,1fr)' }}>
+          <SkeletonStat /><SkeletonStat /><SkeletonStat />
+        </div>
+      </AppLayout>
+    )
   }
 
   return (
@@ -339,7 +346,7 @@ export default function ProdukBaru() {
               </div>
               <div>
                 <div className="text-xs text-muted">Harga Jual</div>
-                <div className={`font-extrabold ${rugi ? 'text-danger' : 'text-primary'}`} style={{ fontSize: 24 }}>{formatRupiah(hargaJual)}</div>
+                <div className={`font-bold ${rugi ? 'text-danger' : 'text-primary'}`} style={{ fontSize: 22 }}>{formatRupiah(hargaJual)}</div>
               </div>
               <div>
                 <div className="text-xs text-muted">Margin</div>
