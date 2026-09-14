@@ -5,6 +5,7 @@ import { useAuth } from '../../components/AuthProvider'
 import AppLayout from '../../components/AppLayout'
 import { logAudit } from '../../utils/audit'
 import Icon from '../../components/Icons'
+import { StatCard, SkeletonStat, SkeletonRows, EmptyBlock } from '../../components/DashboardWidgets'
 
 const formatRupiah = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
@@ -118,19 +119,42 @@ export default function TutupKas() {
     }
   }
 
+  const selisihTone = rekap.fisik > 0 ? (rekap.selisih === 0 ? '' : rekap.selisih > 0 ? 'warning' : 'danger') : ''
+  const selisihLabel = rekap.fisik > 0
+    ? (rekap.selisih === 0 ? 'Seimbang' : rekap.selisih > 0 ? 'Lebih' : 'Kurang')
+    : 'Belum dihitung'
+
   return (
     <AppLayout
       title="Tutup Kas"
       subtitle="Rekap uang laci & serah terima shift"
-      actions={<Link href="/pos" className="btn btn-outline btn-sm">← Kembali ke POS</Link>}
+      actions={<Link href="/pos" className="btn btn-outline btn-sm"><Icon name="cart" size={13} /> Kembali ke POS</Link>}
     >
-      {msg && <div className="alert alert-success">{msg}</div>}
-      {error && <div className="alert alert-danger"> {error}</div>}
+      {msg && <div className="alert alert-success"><Icon name="checkSquare" size={16} /> {msg}</div>}
+      {error && <div className="alert alert-danger"><Icon name="alert" size={16} /> {error}</div>}
 
       {sudahDitutup && (
         <div className="alert alert-warning">
-          ℹ️ Tanggal <b>{tanggal}</b> sudah pernah ditutup oleh {sudahDitutup.user_email || '—'} pada {tglID(sudahDitutup.created_at)}.
+          <Icon name="alert" size={16} /> Tanggal <b>{tanggal}</b> sudah pernah ditutup oleh {sudahDitutup.user_email || '—'} pada {tglID(sudahDitutup.created_at)}.
           Menyimpan lagi akan menambah catatan baru.
+        </div>
+      )}
+
+      {/* Rekap hari ini */}
+      {loading ? (
+        <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(2,1fr)' }}>
+          <SkeletonStat /><SkeletonStat /><SkeletonStat /><SkeletonStat />
+        </div>
+      ) : (
+        <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(2,1fr)' }}>
+          <StatCard label={`Penjualan ${tanggal}`} value={formatRupiah(rekap.penjualan)} icon="trendingUp"
+            tone="primary" hint={`${rekap.jumlah} transaksi`} />
+          <StatCard label="Uang Tunai (laci)" value={formatRupiah(rekap.cash)} icon="banknote"
+            hint="transaksi cash hari ini" />
+          <StatCard label="Seharusnya di Laci" value={formatRupiah(rekap.seharusnya)} icon="lock"
+            tone={rekap.fisik > 0 && rekap.selisih !== 0 ? 'warning' : 'primary'} hint={`modal ${formatRupiah(rekap.modal)} + tunai`} />
+          <StatCard label="Selisih" value={rekap.fisik > 0 ? formatRupiah(rekap.selisih) : '—'} icon="target"
+            tone={selisihTone || ''} hint={selisihLabel} />
         </div>
       )}
 
@@ -186,24 +210,13 @@ export default function TutupKas() {
           </div>
 
           <button className="btn btn-primary btn-block" style={{ padding: 13 }} onClick={simpan} disabled={saving}>
-            {saving ? <><span className="spinner" /> Menyimpan...</> : ' Simpan Tutup Kas'}
+            {saving ? <><span className="spinner" /> Menyimpan...</> : <><Icon name="checkSquare" size={15} /> Simpan Tutup Kas</>}
           </button>
         </div>
 
         {/* ===== Kanan: rekap penjualan ===== */}
         <div className="card">
           <div className="card-header"><div className="card-title"><Icon name="barChart" size={16} /> Penjualan {tanggal}</div></div>
-
-          <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(2,1fr)', marginBottom: 0 }}>
-            <div className="metric-card">
-              <div className="metric-label">Total Penjualan</div>
-              <div className="metric-value text-primary" style={{ fontSize: 18 }}>{formatRupiah(rekap.penjualan)}</div>
-            </div>
-            <div className="metric-card">
-              <div className="metric-label">Jumlah Transaksi</div>
-              <div className="metric-value" style={{ fontSize: 18 }}>{rekap.jumlah}</div>
-            </div>
-          </div>
 
           <div className="mt-3">
             <div className="text-sm font-bold mb-2">Rincian per Metode</div>
@@ -231,13 +244,12 @@ export default function TutupKas() {
           <span className="text-sm text-muted">{riwayat.length} catatan</span>
         </div>
         {loading ? (
-          <p className="text-muted text-center py-4">Memuat...</p>
-        ) : riwayat.length === 0 ? (
-          <div className="empty-state">
-            <div className="nav-icon" style={{ fontSize: 40 }}></div>
-            <h3>Belum ada tutup kas</h3>
-            <p className="text-sm">Lakukan tutup kas setiap akhir shift.</p>
+          <div style={{ padding: 16 }}>
+            <SkeletonRows rows={5} />
           </div>
+        ) : riwayat.length === 0 ? (
+          <EmptyBlock icon="fileText" title="Belum ada tutup kas"
+            message="Lakukan tutup kas setiap akhir shift." />
         ) : (
           <div className="table-wrap">
             <table className="table">
@@ -245,19 +257,24 @@ export default function TutupKas() {
                 <tr><th>Tanggal</th><th className="text-right">Penjualan</th><th className="text-right">Trx</th><th className="text-right">Seharusnya</th><th className="text-right">Fisik</th><th className="text-right">Selisih</th><th>Kasir</th></tr>
               </thead>
               <tbody>
-                {riwayat.map((r) => (
-                  <tr key={r.id}>
-                    <td>{r.tanggal}</td>
-                    <td className="text-right">{formatRupiah(r.penjualan_hari_ini)}</td>
-                    <td className="text-right">{r.trx_hari_ini}</td>
-                    <td className="text-right">{formatRupiah(r.saldo_sistem)}</td>
-                    <td className="text-right font-bold">{formatRupiah(r.uang_fisik)}</td>
-                    <td className={`text-right font-bold ${Number(r.selisih) === 0 ? 'text-success' : 'text-danger'}`}>
-                      {Number(r.selisih) === 0 ? ' 0' : formatRupiah(r.selisih)}
-                    </td>
-                    <td className="text-muted text-xs">{r.user_email || '—'}</td>
-                  </tr>
-                ))}
+                {riwayat.map((r) => {
+                  const s = Number(r.selisih || 0)
+                  return (
+                    <tr key={r.id}>
+                      <td>{r.tanggal}</td>
+                      <td className="text-right">{formatRupiah(r.penjualan_hari_ini)}</td>
+                      <td className="text-right">{r.trx_hari_ini}</td>
+                      <td className="text-right">{formatRupiah(r.saldo_sistem)}</td>
+                      <td className="text-right font-bold">{formatRupiah(r.uang_fisik)}</td>
+                      <td className="text-right font-bold">
+                        <span className={`badge ${s === 0 ? 'badge-success' : s > 0 ? 'badge-neutral' : 'badge-danger'}`}>
+                          {s === 0 ? ' Seimbang' : s > 0 ? `+${formatRupiah(s)}` : formatRupiah(s)}
+                        </span>
+                      </td>
+                      <td className="text-muted text-xs">{r.user_email || '—'}</td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>
