@@ -4,6 +4,7 @@ import { useAuth } from '../../components/AuthProvider'
 import AppLayout from '../../components/AppLayout'
 import { logAudit } from '../../utils/audit'
 import Icon from '../../components/Icons'
+import { StatCard, SkeletonStat, SkeletonRows, EmptyBlock } from '../../components/DashboardWidgets'
 
 const formatRupiah = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
@@ -186,28 +187,24 @@ export default function HutangPiutang() {
         </div>
       )}
 
-      <div className="metrics-grid">
-        <div className="metric-card">
-          <div className="metric-label">Piutang Belum Dibayar</div>
-          <div className="metric-value text-warning">{formatRupiah(stat.piutang.belum)}</div>
-          <div className="text-xs text-muted">{stat.piutang.aktifN} tagihan</div>
+      {loading ? (
+        <div className="metrics-grid">
+          <SkeletonStat /><SkeletonStat /><SkeletonStat /><SkeletonStat />
         </div>
-        <div className="metric-card">
-          <div className="metric-label">Hutang Belum Dibayar</div>
-          <div className="metric-value text-danger">{formatRupiah(stat.hutang.belum)}</div>
-          <div className="text-xs text-muted">{stat.hutang.aktifN} kewajiban</div>
+      ) : (
+        <div className="metrics-grid">
+          <StatCard label="Piutang Belum Dibayar" value={formatRupiah(stat.piutang.belum)}
+            icon="banknote" tone="warning" hint={`${stat.piutang.aktifN} tagihan aktif`} />
+          <StatCard label="Hutang Belum Dibayar" value={formatRupiah(stat.hutang.belum)}
+            icon="wallet" tone="danger" hint={`${stat.hutang.aktifN} kewajiban aktif`} />
+          <StatCard label="Posisi Bersih" value={formatRupiah(stat.piutang.belum - stat.hutang.belum)}
+            icon="handshake" tone={stat.piutang.belum - stat.hutang.belum >= 0 ? 'primary' : 'danger'}
+            hint="piutang − hutang" />
+          <StatCard label="Lewat Tempo" value={stat.piutang.lewatTempo + stat.hutang.lewatTempo}
+            icon="alert" tone={stat.piutang.lewatTempo + stat.hutang.lewatTempo > 0 ? 'danger' : ''}
+            hint="perlu tindakan" />
         </div>
-        <div className="metric-card">
-          <div className="metric-label">Posisi Bersih</div>
-          <div className={`metric-value ${stat.piutang.belum - stat.hutang.belum >= 0 ? 'text-success' : 'text-danger'}`}>
-            {formatRupiah(stat.piutang.belum - stat.hutang.belum)}
-          </div>
-        </div>
-        <div className="metric-card">
-          <div className="metric-label">Lewat Tempo</div>
-          <div className="metric-value text-danger">{stat.piutang.lewatTempo + stat.hutang.lewatTempo}</div>
-        </div>
-      </div>
+      )}
 
       {/* Form */}
       <form onSubmit={simpan}>
@@ -259,7 +256,7 @@ export default function HutangPiutang() {
 
           <div className="flex justify-end">
             <button type="submit" className="btn btn-primary" disabled={saving}>
-              {saving ? <><span className="spinner" /> Menyimpan...</> : '＋ Catat'}
+              {saving ? <><span className="spinner" /> Menyimpan...</> : <><Icon name="plus" size={15} /> Catat</>}
             </button>
           </div>
         </div>
@@ -334,13 +331,14 @@ export default function HutangPiutang() {
           </div>
         </div>
 
-        {loading ? <p className="text-muted text-center py-4">Memuat...</p>
-          : filtered.length === 0 ? (
-            <div className="empty-state">
-              <div className="nav-icon" style={{ fontSize: 40 }}>{tab === 'piutang' ? '' : ''}</div>
-              <h3>Belum ada {tab}</h3>
-              <p className="text-sm">Catat {tab} pelanggan atau supplier Anda.</p>
-            </div>
+        {loading ? (
+          <div style={{ padding: 16 }}>
+            <SkeletonRows rows={5} />
+          </div>
+        ) : filtered.length === 0 ? (
+            <EmptyBlock icon={tab === 'piutang' ? 'banknote' : 'wallet'}
+              title={`Belum ada ${tab}`}
+              message={`Catat ${tab} pelanggan atau supplier Anda.`} />
           ) : (
             <div className="table-wrap">
               <table className="table">
@@ -366,7 +364,7 @@ export default function HutangPiutang() {
                         <td className="text-right">
                           <div className="flex gap-1 justify-end">
                             {r.status !== 'lunas' && (
-                              <button className="btn btn-sm btn-primary"
+                              <button className="btn btn-sm btn-primary" title="Catat pembayaran"
                                 onClick={() => setBayar({ row: r, jumlah: String(sisaRp), metode: 'cash', tanggal: hariIni() })}><Icon name="banknote" size={13} /></button>
                             )}
                             {r.status === 'lunas' && (

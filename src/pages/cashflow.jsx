@@ -5,9 +5,15 @@ import { useAuth } from '../components/AuthProvider'
 import AppLayout from '../components/AppLayout'
 import { logAudit } from '../utils/audit'
 import Icon from '../components/Icons'
+import { StatCard, SkeletonStat, SkeletonRows, EmptyBlock } from '../components/DashboardWidgets'
 
 const formatRupiah = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
+
+const formatTanggal = (v) => {
+  if (!v) return '—'
+  return new Date(v).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
+}
 
 const KATEGORI_MASUK = ['Penjualan', 'Modal', 'Hutang', 'Piutang', 'Lainnya']
 const KATEGORI_KELUAR = ['Pembelian Bahan', 'Operasional', 'Gaji', 'Sewa', 'Utilitas', 'Marketing', 'Lainnya']
@@ -83,20 +89,20 @@ export default function Cashflow() {
   return (
     <AppLayout title="Cashflow" subtitle="Arus kas masuk & keluar">
       {/* Ringkasan */}
-      <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(3,1fr)' }}>
-        <div className="metric-card">
-          <div className="metric-label">Uang Masuk</div>
-          <div className="metric-value text-success">{formatRupiah(totalMasuk)}</div>
+      {loading ? (
+        <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(3,1fr)' }}>
+          <SkeletonStat /><SkeletonStat /><SkeletonStat />
         </div>
-        <div className="metric-card">
-          <div className="metric-label">Uang Keluar</div>
-          <div className="metric-value text-danger">{formatRupiah(totalKeluar)}</div>
+      ) : (
+        <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(3,1fr)' }}>
+          <StatCard label="Uang Masuk" value={formatRupiah(totalMasuk)} icon="trendingUp"
+            tone="primary" hint="total pemasukan" />
+          <StatCard label="Uang Keluar" value={formatRupiah(totalKeluar)} icon="trendingDown"
+            tone="danger" hint="total pengeluaran" />
+          <StatCard label="Saldo" value={formatRupiah(saldo)} icon="wallet"
+            tone={saldo >= 0 ? 'primary' : 'danger'} hint="masuk − keluar" />
         </div>
-        <div className="metric-card">
-          <div className="metric-label">Saldo</div>
-          <div className={`metric-value ${saldo >= 0 ? 'text-primary' : 'text-danger'}`}>{formatRupiah(saldo)}</div>
-        </div>
-      </div>
+      )}
 
       {/* Toolbar */}
       <div className="card" style={{ padding: 16 }}>
@@ -113,7 +119,7 @@ export default function Cashflow() {
               {bulanList.map((b) => <option key={b} value={b}>{b}</option>)}
             </select>
           </div>
-          <Link href="/cashflow/tambah" className="btn btn-primary">＋ Catat Transaksi</Link>
+          <Link href="/cashflow/tambah" className="btn btn-primary"><Icon name="plus" size={15} /> Catat Transaksi</Link>
         </div>
       </div>
 
@@ -168,13 +174,12 @@ export default function Cashflow() {
         </div>
 
         {loading ? (
-          <p className="text-muted text-center py-4">Memuat...</p>
-        ) : filtered.length === 0 ? (
-          <div className="empty-state">
-            <div className="nav-icon" style={{ fontSize: 40 }}></div>
-            <h3>Belum ada transaksi</h3>
-            <p className="text-sm">Catat pemasukan atau pengeluaran pertama Anda.</p>
+          <div style={{ padding: 16 }}>
+            <SkeletonRows rows={5} />
           </div>
+        ) : filtered.length === 0 ? (
+          <EmptyBlock icon="wallet" title="Belum ada transaksi"
+            message="Catat pemasukan atau pengeluaran pertama Anda." />
         ) : (
           <div className="table-wrap">
             <table className="table">
@@ -184,7 +189,7 @@ export default function Cashflow() {
               <tbody>
                 {filtered.map((d) => (
                   <tr key={d.id}>
-                    <td>{d.tanggal}</td>
+                    <td>{formatTanggal(d.tanggal)}</td>
                     <td className="font-bold">{d.keterangan}</td>
                     <td><span className="badge badge-neutral">{d.kategori}</span></td>
                     <td>
