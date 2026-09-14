@@ -3,6 +3,7 @@ import { supabase } from '../utils/supabaseClient'
 import { useAuth } from '../components/AuthProvider'
 import AppLayout from '../components/AppLayout'
 import Icon from '../components/Icons'
+import { StatCard, SkeletonStat, SkeletonRows, EmptyBlock } from '../components/DashboardWidgets'
 
 const rp = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
@@ -205,12 +206,12 @@ export default function Diagnosis() {
 
           {/* Angka kunci */}
           <div className="metrics-grid">
-            <div className="metric-card"><div className="metric-label">Pendapatan (30 hari)</div><div className="metric-value text-primary">{rp(diag.pendapatan)}</div></div>
-            <div className="metric-card"><div className="metric-label">Laba Bersih</div><div className={`metric-value ${diag.labaBersih >= 0 ? 'text-success' : 'text-danger'}`}>{rp(diag.labaBersih)}</div></div>
-            <div className="metric-card"><div className="metric-label">Margin Bersih</div><div className="metric-value">{diag.marginBersih.toFixed(1)}%</div></div>
-            <div className="metric-card"><div className="metric-label">Hari Aktif</div><div className="metric-value">{diag.hariAktif} <span className="text-xs text-muted">/30</span></div></div>
-            <div className="metric-card"><div className="metric-label">Kerugian Waste</div><div className="metric-value text-danger">{rp(diag.biayaWaste)}</div></div>
-            <div className="metric-card"><div className="metric-label">Produk Tidak Laku</div><div className="metric-value">{diag.produkMati.length}</div></div>
+            <StatCard label="Pendapatan (30 hari)" value={rp(diag.pendapatan)} icon="calendar" tone="primary" />
+                        <StatCard label="Laba Bersih" value={rp(diag.labaBersih)} tone={diag.labaBersih >= 0 ? 'success' : 'danger'} icon="trendingUp" />
+                        <StatCard label="Margin Bersih" value={`${diag.marginBersih.toFixed(1)}%`} icon="percent" />
+                        <StatCard label="Hari Aktif" value={`${diag.hariAktif}/30`} icon="calendar" />
+                        <StatCard label="Kerugian Waste" value={rp(diag.biayaWaste)} icon="trendingDown" tone="danger" />
+                        <StatCard label="Produk Tidak Laku" value={diag.produkMati.length} icon="box" />
           </div>
 
           {/* Produk teratas */}

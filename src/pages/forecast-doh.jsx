@@ -4,6 +4,7 @@ import { useAuth } from '../components/AuthProvider'
 import AppLayout from '../components/AppLayout'
 import { exportCSV } from '../utils/export'
 import Icon from '../components/Icons'
+import { StatCard, SkeletonStat, SkeletonRows, EmptyBlock } from '../components/DashboardWidgets'
 
 const rp = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
@@ -136,10 +137,10 @@ export default function ForecastDOH() {
       {loading ? <p className="text-muted text-center py-4">Menghitung forecast...</p> : (
         <>
           <div className="metrics-grid">
-            <div className="metric-card"><div className="metric-label">Produk Dianalisis</div><div className="metric-value text-primary">{analisis.rows.length}</div></div>
-            <div className="metric-card"><div className="metric-label">Perlu Produksi</div><div className="metric-value text-warning">{analisis.perluProduksi.length}</div></div>
-            <div className="metric-card"><div className="metric-label">Total Saran Produksi</div><div className="metric-value">{analisis.totalSaran} <span className="text-xs text-muted">pcs</span></div></div>
-            <div className="metric-card"><div className="metric-label">Nilai Stok Tersimpan</div><div className="metric-value text-primary">{rp(analisis.totalNilaiStok)}</div></div>
+            <StatCard label="Produk Dianalisis" value={analisis.rows.length} icon="box" tone="primary" />
+            <StatCard label="Perlu Produksi" value={analisis.perluProduksi.length} icon="box" tone="warning" />
+            <StatCard label="Total Saran Produksi" value={`${analisis.totalSaran} pcs`} icon="box" />
+            <StatCard label="Nilai Stok Tersimpan" value={rp(analisis.totalNilaiStok)} icon="inbox" tone="primary" />
           </div>
 
           {analisis.perluProduksi.length > 0 && (
@@ -171,11 +172,7 @@ export default function ForecastDOH() {
               <span className="text-sm text-muted">diurutkan dari paling mendesak</span>
             </div>
             {analisis.rows.length === 0 ? (
-              <div className="empty-state">
-                <div className="nav-icon" style={{ fontSize: 40 }}></div>
-                <h3>Belum ada produk</h3>
-                <p className="text-sm">Tambahkan produk untuk melihat forecast.</p>
-              </div>
+              <EmptyBlock icon="box" title="Belum ada produk" message="Tambahkan produk untuk melihat forecast." />
             ) : (
               <div className="table-wrap">
                 <table className="table">

@@ -4,6 +4,7 @@ import { useAuth } from '../components/AuthProvider'
 import AppLayout from '../components/AppLayout'
 import { exportCSV, exportPDF } from '../utils/export'
 import Icon from '../components/Icons'
+import { StatCard, SkeletonStat, SkeletonRows, EmptyBlock } from '../components/DashboardWidgets'
 
 const rp = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
@@ -166,12 +167,12 @@ export default function LabaRugi() {
       {loading ? <p className="text-muted text-center py-4">Menghitung laporan...</p> : (
         <>
           <div className="metrics-grid">
-            <div className="metric-card"><div className="metric-label">Pendapatan</div><div className="metric-value text-primary">{rp(pl.pendapatan)}</div></div>
-            <div className="metric-card"><div className="metric-label">Laba Kotor</div><div className={`metric-value ${pl.labaKotor >= 0 ? 'text-success' : 'text-danger'}`}>{rp(pl.labaKotor)}</div></div>
-            <div className="metric-card"><div className="metric-label">Biaya Operasional</div><div className="metric-value text-danger">{rp(pl.biayaOp)}</div></div>
-            <div className="metric-card"><div className="metric-label">Laba Bersih</div><div className={`metric-value ${pl.labaBersih >= 0 ? 'text-success' : 'text-danger'}`}>{rp(pl.labaBersih)}</div></div>
-            <div className="metric-card"><div className="metric-label">Margin Kotor</div><div className="metric-value">{pct(pl.marginKotor)}</div></div>
-            <div className="metric-card"><div className="metric-label">Margin Bersih</div><div className="metric-value">{pct(pl.marginBersih)}</div></div>
+            <StatCard label="Pendapatan" value={rp(pl.pendapatan)} icon="barChart" tone="primary" />
+                        <StatCard label="Laba Kotor" value={rp(pl.labaKotor)} icon="trendingUp" tone={pl.labaKotor >= 0 ? 'success' : 'danger'} />
+                        <StatCard label="Biaya Operasional" value={rp(pl.biayaOp)} icon="trendingDown" tone="danger" />
+                        <StatCard label="Laba Bersih" value={rp(pl.labaBersih)} icon="trendingUp" tone={pl.labaBersih >= 0 ? 'success' : 'danger'} />
+                        <StatCard label="Margin Kotor" value={pct(pl.marginKotor)} icon="percent" />
+                        <StatCard label="Margin Bersih" value={pct(pl.marginBersih)} icon="barChart" />
           </div>
 
           <div className="card">

@@ -5,6 +5,7 @@ import AppLayout from '../components/AppLayout'
 import { logAudit } from '../utils/audit'
 import { LOYALTY_DEFAULT, TIER_DEFAULT, TIER_EMOJI, ORDER_TIER, tierDari } from '../utils/loyalty'
 import Icon from '../components/Icons'
+import { StatCard, SkeletonStat, SkeletonRows, EmptyBlock } from '../components/DashboardWidgets'
 
 const formatRupiah = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
@@ -155,10 +156,10 @@ export default function Loyalty() {
       {error && <div className="alert alert-danger"> {error}</div>}
 
       <div className="metrics-grid">
-        <div className="metric-card"><div className="metric-label">Total Member</div><div className="metric-value text-primary">{stat.total}</div></div>
-        <div className="metric-card"><div className="metric-label">Poin Beredar</div><div className="metric-value">{stat.totalPoin.toLocaleString('id-ID')}</div></div>
-        <div className="metric-card"><div className="metric-label">Nilai Poin</div><div className="metric-value text-success">{formatRupiah(stat.totalPoin * (Number(nilaiPoin) || 0))}</div></div>
-        <div className="metric-card"><div className="metric-label">Total Belanja Member</div><div className="metric-value">{formatRupiah(stat.totalBelanja)}</div></div>
+        <StatCard label="Total Member" value={stat.total} icon="users" tone="primary" />
+        <StatCard label="Poin Beredar" value={stat.totalPoin.toLocaleString('id-ID')} icon="gem" />
+        <StatCard label="Nilai Poin" value={formatRupiah(stat.totalPoin * (Number(nilaiPoin) || 0))} icon="gem" tone="success" />
+        <StatCard label="Total Belanja Member" value={formatRupiah(stat.totalBelanja)} icon="users" />
       </div>
 
       <div className="card" style={{ padding: 8 }}>
@@ -201,13 +202,9 @@ export default function Loyalty() {
               <div className="card-title"><Icon name="users" size={16} /> Daftar Member</div>
               <span className="text-sm text-muted">{filtered.length} member</span>
             </div>
-            {loading ? <p className="text-muted text-center py-4">Memuat...</p>
+            {loading ? <div className="p-3"><SkeletonRows rows={4} /></div>
               : filtered.length === 0 ? (
-                <div className="empty-state">
-                  <div className="nav-icon" style={{ fontSize: 40 }}></div>
-                  <h3>Belum ada member</h3>
-                  <p className="text-sm">Member otomatis terdaftar saat transaksi POS dengan nama pelanggan.</p>
-                </div>
+                <EmptyBlock icon="users" title="Belum ada member" message="Member otomatis terdaftar saat transaksi POS dengan nama pelanggan." />
               ) : (
                 <div className="table-wrap">
                   <table className="table">
@@ -284,7 +281,7 @@ export default function Loyalty() {
                   const row = tiers.find((x) => x.tier === t) || { tier: t, diskon_persen: 0, target_bulanan: 0, keterangan: '' }
                   return (
                     <tr key={t}>
-                      <td className="font-extrabold">{TIER_EMOJI[t]} {t}</td>
+                      <td className="font-bold">{TIER_EMOJI[t]} {t}</td>
                       <td><input className="form-control" type="number" style={{ maxWidth: 100, padding: '6px 8px' }}
                         value={row.diskon_persen} onChange={(e) => editTier(t, 'diskon_persen', e.target.value)} /></td>
                       <td><input className="form-control" type="number" style={{ maxWidth: 160, padding: '6px 8px' }}

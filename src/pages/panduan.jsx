@@ -2,6 +2,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import AppLayout from '../components/AppLayout'
 import Icon from '../components/Icons'
+import { StatCard, SkeletonStat, SkeletonRows, EmptyBlock } from '../components/DashboardWidgets'
 
 const TAB = [
   { k: 'umum', l: ' Mulai' },

@@ -4,6 +4,7 @@ import { useAuth } from '../components/AuthProvider'
 import AppLayout from '../components/AppLayout'
 import { logAudit } from '../utils/audit'
 import Icon from '../components/Icons'
+import { StatCard, SkeletonStat, SkeletonRows, EmptyBlock } from '../components/DashboardWidgets'
 
 const rp = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
@@ -151,7 +152,7 @@ export default function TargetBudget() {
         </div>
       </div>
 
-      {loading ? <p className="text-muted text-center py-4">Memuat...</p> : (
+      {loading ? <div className="p-3"><SkeletonRows rows={4} /></div> : (
         <>
           {/* Progres realisasi */}
           <div className="card">

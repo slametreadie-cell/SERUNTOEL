@@ -4,6 +4,7 @@ import { useAuth } from '../components/AuthProvider'
 import AppLayout from '../components/AppLayout'
 import { logAudit } from '../utils/audit'
 import Icon from '../components/Icons'
+import { StatCard, SkeletonStat, SkeletonRows, EmptyBlock } from '../components/DashboardWidgets'
 
 const formatRupiah = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
@@ -139,10 +140,10 @@ export default function Karyawan() {
       {error && <div className="alert alert-danger"> {error}</div>}
 
       <div className="metrics-grid">
-        <div className="metric-card"><div className="metric-label">Total Karyawan</div><div className="metric-value text-primary">{stat.total}</div></div>
-        <div className="metric-card"><div className="metric-label">Aktif</div><div className="metric-value text-success">{stat.aktif}</div></div>
-        <div className="metric-card"><div className="metric-label">Payroll / Bulan</div><div className="metric-value">{formatRupiah(stat.payroll)}</div></div>
-        <div className="metric-card"><div className="metric-label">Hadir {tglID(tanggalAbsen)}</div><div className="metric-value">{stat.hadirHariIni}</div></div>
+        <StatCard label="Total Karyawan" value={stat.total} icon="box" tone="primary" />
+        <StatCard label="Aktif" value={stat.aktif} icon="barChart" tone="success" />
+        <StatCard label="Payroll / Bulan" value={formatRupiah(stat.payroll)} icon="barChart" />
+        <StatCard label="Hadir {tglID(tanggalAbsen)}" value={stat.hadirHariIni} icon="barChart" />
       </div>
 
       <div className="card" style={{ padding: 8 }}>
@@ -205,13 +206,9 @@ export default function Karyawan() {
               <div className="card-title"><Icon name="clipboard" size={16} /> Daftar Karyawan</div>
               <input className="form-control" style={{ maxWidth: 220 }} placeholder="Cari..." value={search} onChange={(e) => setSearch(e.target.value)} />
             </div>
-            {loading ? <p className="text-muted text-center py-4">Memuat...</p>
+            {loading ? <div className="p-3"><SkeletonRows rows={4} /></div>
               : filtered.length === 0 ? (
-                <div className="empty-state">
-                  <div className="nav-icon" style={{ fontSize: 40 }}></div>
-                  <h3>Belum ada karyawan</h3>
-                  <p className="text-sm">Tambahkan data tim Anda.</p>
-                </div>
+                <EmptyBlock icon="barChart" title="Belum ada karyawan" message="Tambahkan data tim Anda." />
               ) : (
                 <div className="table-wrap">
                   <table className="table">

@@ -4,6 +4,7 @@ import { useAuth } from '../components/AuthProvider'
 import AppLayout from '../components/AppLayout'
 import { logAudit } from '../utils/audit'
 import Icon from '../components/Icons'
+import { StatCard, SkeletonStat, SkeletonRows, EmptyBlock } from '../components/DashboardWidgets'
 
 const formatRupiah = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
@@ -100,10 +101,10 @@ export default function Reseller() {
       {error && <div className="alert alert-danger"> {error}</div>}
 
       <div className="metrics-grid">
-        <div className="metric-card"><div className="metric-label">Total Reseller</div><div className="metric-value text-primary">{stat.total}</div></div>
-        <div className="metric-card"><div className="metric-label">Omzet Reseller</div><div className="metric-value text-success">{formatRupiah(stat.omzet)}</div></div>
-        <div className="metric-card"><div className="metric-label">Transaksi Reseller</div><div className="metric-value">{stat.trx}</div></div>
-        <div className="metric-card"><div className="metric-label">Rata-rata / Transaksi</div><div className="metric-value">{formatRupiah(stat.rata)}</div></div>
+        <StatCard label="Total Reseller" value={stat.total} icon="handshake" tone="primary" />
+        <StatCard label="Omzet Reseller" value={formatRupiah(stat.omzet)} icon="handshake" tone="success" />
+        <StatCard label="Transaksi Reseller" value={stat.trx} icon="handshake" />
+        <StatCard label="Rata-rata / Transaksi" value={formatRupiah(stat.rata)} icon="receipt" />
       </div>
 
       {/* Pengaturan harga reseller */}
@@ -177,13 +178,9 @@ export default function Reseller() {
           <div className="card-title"><Icon name="handshake" size={16} /> Daftar Reseller</div>
           <input className="form-control" style={{ maxWidth: 220 }} placeholder="Cari..." value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
-        {loading ? <p className="text-muted text-center py-4">Memuat...</p>
+        {loading ? <div className="p-3"><SkeletonRows rows={4} /></div>
           : filtered.length === 0 ? (
-            <div className="empty-state">
-              <div className="nav-icon" style={{ fontSize: 40 }}></div>
-              <h3>Belum ada reseller</h3>
-              <p className="text-sm">Daftarkan mitra penjual untuk mendapat harga khusus.</p>
-            </div>
+            <EmptyBlock icon="handshake" title="Belum ada reseller" message="Daftarkan mitra penjual untuk mendapat harga khusus." />
           ) : (
             <div className="table-wrap">
               <table className="table">

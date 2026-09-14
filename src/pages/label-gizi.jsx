@@ -4,6 +4,7 @@ import { useAuth } from '../components/AuthProvider'
 import AppLayout from '../components/AppLayout'
 import { logAudit } from '../utils/audit'
 import Icon from '../components/Icons'
+import { StatCard, SkeletonStat, SkeletonRows, EmptyBlock } from '../components/DashboardWidgets'
 
 const hariIni = () => new Date().toISOString().slice(0, 10)
 const tglID = (v) => v ? new Date(v).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'
@@ -115,9 +116,9 @@ export default function LabelGizi() {
       {error && <div className="alert alert-danger"> {error}</div>}
 
       <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(3,1fr)' }}>
-        <div className="metric-card"><div className="metric-label">Produk Berlabel</div><div className="metric-value text-primary">{stat.total}</div></div>
-        <div className="metric-card"><div className="metric-label">Rata-rata Kalori</div><div className="metric-value">{stat.rataKalori} <span className="text-xs text-muted">kkal</span></div></div>
-        <div className="metric-card"><div className="metric-label">Kalori Tertinggi</div><div className="metric-value text-warning">{stat.tertinggi} <span className="text-xs text-muted">kkal</span></div></div>
+        <StatCard label="Produk Berlabel" value={stat.total} icon="box" tone="primary" />
+        <StatCard label="Rata-rata Kalori" value={`${stat.rataKalori} kkal`} icon="barChart" />
+                <StatCard label="Kalori Tertinggi" value={`${stat.tertinggi} kkal`} icon="barChart" tone="warning" />
       </div>
 
       <form onSubmit={simpan}>
@@ -172,13 +173,9 @@ export default function LabelGizi() {
             value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
 
-        {loading ? <p className="text-muted text-center py-4">Memuat...</p>
+        {loading ? <div className="p-3"><SkeletonRows rows={4} /></div>
           : filtered.length === 0 ? (
-            <div className="empty-state">
-              <div className="nav-icon" style={{ fontSize: 40 }}></div>
-              <h3>Belum ada label gizi</h3>
-              <p className="text-sm">Buat label untuk mencantumkan informasi gizi pada kemasan.</p>
-            </div>
+            <EmptyBlock icon="barChart" title="Belum ada label gizi" message="Buat label untuk mencantumkan informasi gizi pada kemasan." />
           ) : (
             <div className="table-wrap">
               <table className="table">

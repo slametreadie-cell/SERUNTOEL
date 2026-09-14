@@ -3,6 +3,7 @@ import { supabase } from '../utils/supabaseClient'
 import { useAuth } from '../components/AuthProvider'
 import AppLayout from '../components/AppLayout'
 import Icon from '../components/Icons'
+import { StatCard, SkeletonStat, SkeletonRows, EmptyBlock } from '../components/DashboardWidgets'
 
 const formatWaktu = (v) => {
   if (!v) return '—'
@@ -95,13 +96,9 @@ export default function Audit() {
         </div>
 
         {loading ? (
-          <p className="text-muted text-center py-4">Memuat...</p>
+          <div className="p-3"><SkeletonRows rows={4} /></div>
         ) : filtered.length === 0 ? (
-          <div className="empty-state">
-            <div className="nav-icon" style={{ fontSize: 40 }}></div>
-            <h3>Belum ada aktivitas</h3>
-            <p className="text-sm">Catatan muncul saat ada transaksi, produk, atau pembelian baru.</p>
-          </div>
+          <EmptyBlock icon="barChart" title="Belum ada aktivitas" message="Catatan muncul saat ada transaksi, produk, atau pembelian baru." />
         ) : (
           <div className="table-wrap">
             <table className="table">

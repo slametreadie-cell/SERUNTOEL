@@ -4,6 +4,7 @@ import { useAuth } from '../components/AuthProvider'
 import AppLayout from '../components/AppLayout'
 import { logAudit } from '../utils/audit'
 import Icon from '../components/Icons'
+import { StatCard, SkeletonStat, SkeletonRows, EmptyBlock } from '../components/DashboardWidgets'
 
 const formatRupiah = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
@@ -105,18 +106,9 @@ export default function Voucher() {
       {error && <div className="alert alert-danger"> {error}</div>}
 
       <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(3,1fr)' }}>
-        <div className="metric-card">
-          <div className="metric-label">Voucher Aktif</div>
-          <div className="metric-value text-primary">{aktifCount}</div>
-        </div>
-        <div className="metric-card">
-          <div className="metric-label">Total Pemakaian</div>
-          <div className="metric-value">{totalPemakaian}×</div>
-        </div>
-        <div className="metric-card">
-          <div className="metric-label">Total Diskon Diberikan</div>
-          <div className="metric-value text-danger">{formatRupiah(totalDiskon)}</div>
-        </div>
+        <StatCard label="Voucher Aktif" value={aktifCount} icon="ticket" tone="primary" />
+        <StatCard label="Total Pemakaian" value={`${totalPemakaian} ×`} icon="clipboard" />
+        <StatCard label="Total Diskon Diberikan" value={formatRupiah(totalDiskon)} icon="ticket" tone="danger" />
       </div>
 
       {/* Form buat voucher */}
@@ -185,13 +177,9 @@ export default function Voucher() {
         </div>
 
         {loading ? (
-          <p className="text-muted text-center py-4">Memuat...</p>
+          <div className="p-3"><SkeletonRows rows={4} /></div>
         ) : filtered.length === 0 ? (
-          <div className="empty-state">
-            <div className="nav-icon" style={{ fontSize: 40 }}></div>
-            <h3>Belum ada voucher</h3>
-            <p className="text-sm">Buat voucher untuk menarik pelanggan.</p>
-          </div>
+          <EmptyBlock icon="ticket" title="Belum ada voucher" message="Buat voucher untuk menarik pelanggan." />
         ) : (
           <div className="table-wrap">
             <table className="table">
@@ -204,7 +192,7 @@ export default function Voucher() {
                   return (
                     <tr key={v.id}>
                       <td>
-                        <div className="font-extrabold">{v.kode}</div>
+                        <div className="font-bold">{v.kode}</div>
                         {v.deskripsi && <div className="text-xs text-muted">{v.deskripsi}</div>}
                       </td>
                       <td className="font-bold text-danger">

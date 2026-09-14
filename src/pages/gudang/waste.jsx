@@ -4,6 +4,7 @@ import { useAuth } from '../../components/AuthProvider'
 import AppLayout from '../../components/AppLayout'
 import { logAudit } from '../../utils/audit'
 import Icon from '../../components/Icons'
+import { StatCard, SkeletonStat, SkeletonRows, EmptyBlock } from '../../components/DashboardWidgets'
 
 const formatRupiah = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
@@ -104,9 +105,9 @@ export default function Waste() {
       {error && <div className="alert alert-danger"> {error}</div>}
 
       <div className="metrics-grid">
-        <div className="metric-card"><div className="metric-label">Total Kerugian</div><div className="metric-value text-danger">{formatRupiah(stat.biaya)}</div></div>
-        <div className="metric-card"><div className="metric-label">Total Qty Waste</div><div className="metric-value">{stat.qty}</div></div>
-        <div className="metric-card"><div className="metric-label">Jumlah Catatan</div><div className="metric-value">{stat.n}</div></div>
+        <StatCard label="Total Kerugian" value={formatRupiah(stat.biaya)} icon="trendingDown" tone="danger" />
+        <StatCard label="Total Qty Waste" value={stat.qty} icon="box" />
+        <StatCard label="Jumlah Catatan" value={stat.n} icon="barChart" />
         <div className="metric-card"><div className="metric-label">Alasan Terbanyak</div><div className="metric-value" style={{ fontSize: 15 }}>{stat.teratas}</div></div>
       </div>
 
@@ -172,13 +173,9 @@ export default function Waste() {
             value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
 
-        {loading ? <p className="text-muted text-center py-4">Memuat...</p>
+        {loading ? <div className="p-3"><SkeletonRows rows={4} /></div>
           : filtered.length === 0 ? (
-            <div className="empty-state">
-              <div className="nav-icon" style={{ fontSize: 40 }}></div>
-              <h3>Belum ada waste</h3>
-              <p className="text-sm">Bagus! Tidak ada produk terbuang pada periode ini.</p>
-            </div>
+            <EmptyBlock icon="barChart" title="Belum ada waste" message="Bagus! Tidak ada produk terbuang pada periode ini." />
           ) : (
             <div className="table-wrap">
               <table className="table">
@@ -196,10 +193,10 @@ export default function Waste() {
                     </tr>
                   ))}
                   <tr style={{ background: 'var(--bg)' }}>
-                    <td colSpan={2} className="font-extrabold">TOTAL</td>
-                    <td className="text-right font-extrabold">{stat.qty}</td>
+                    <td colSpan={2} className="font-bold">TOTAL</td>
+                    <td className="text-right font-bold">{stat.qty}</td>
                     <td></td>
-                    <td className="text-right font-extrabold text-danger">{formatRupiah(stat.biaya)}</td>
+                    <td className="text-right font-bold text-danger">{formatRupiah(stat.biaya)}</td>
                     <td colSpan={2}></td>
                   </tr>
                 </tbody>

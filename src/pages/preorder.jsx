@@ -4,6 +4,7 @@ import { useAuth } from '../components/AuthProvider'
 import AppLayout from '../components/AppLayout'
 import { logAudit } from '../utils/audit'
 import Icon from '../components/Icons'
+import { StatCard, SkeletonStat, SkeletonRows, EmptyBlock } from '../components/DashboardWidgets'
 
 const formatRupiah = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
@@ -157,10 +158,10 @@ export default function PreOrder() {
       {error && <div className="alert alert-danger"> {error}</div>}
 
       <div className="metrics-grid">
-        <div className="metric-card"><div className="metric-label">Total Pre-Order</div><div className="metric-value text-primary">{stat.total}</div></div>
-        <div className="metric-card"><div className="metric-label">Masih Aktif</div><div className="metric-value text-warning">{stat.aktif}</div></div>
-        <div className="metric-card"><div className="metric-label">Belum Dibayar</div><div className="metric-value text-danger">{formatRupiah(stat.belumLunas)}</div></div>
-        <div className="metric-card"><div className="metric-label">Nilai Pesanan</div><div className="metric-value text-success">{formatRupiah(stat.omzet)}</div></div>
+        <StatCard label="Total Pre-Order" value={stat.total} icon="box" tone="primary" />
+        <StatCard label="Masih Aktif" value={stat.aktif} icon="barChart" tone="warning" />
+        <StatCard label="Belum Dibayar" value={formatRupiah(stat.belumLunas)} icon="barChart" tone="danger" />
+        <StatCard label="Nilai Pesanan" value={formatRupiah(stat.omzet)} icon="wallet" tone="success" />
       </div>
 
       <form onSubmit={simpan}>
@@ -249,13 +250,9 @@ export default function PreOrder() {
           </div>
         </div>
 
-        {loading ? <p className="text-muted text-center py-4">Memuat...</p>
+        {loading ? <div className="p-3"><SkeletonRows rows={4} /></div>
           : filtered.length === 0 ? (
-            <div className="empty-state">
-              <div className="nav-icon" style={{ fontSize: 40 }}></div>
-              <h3>Belum ada pre-order</h3>
-              <p className="text-sm">Catat pesanan pelanggan sebelum produksi.</p>
-            </div>
+            <EmptyBlock icon="barChart" title="Belum ada pre-order" message="Catat pesanan pelanggan sebelum produksi." />
           ) : (
             <div className="table-wrap">
               <table className="table">

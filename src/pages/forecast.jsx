@@ -3,6 +3,7 @@ import { supabase } from '../utils/supabaseClient'
 import { useAuth } from '../components/AuthProvider'
 import AppLayout from '../components/AppLayout'
 import Icon from '../components/Icons'
+import { StatCard, SkeletonStat, SkeletonRows, EmptyBlock } from '../components/DashboardWidgets'
 
 const formatRupiah = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
@@ -158,11 +159,7 @@ export default function Forecast() {
           <div className="card-header"><div className="card-title"><Icon name="barChart" size={16} /> Hasil Simulasi</div></div>
 
           {!hasil ? (
-            <div className="empty-state">
-              <div className="nav-icon" style={{ fontSize: 40 }}></div>
-              <h3>Belum ada simulasi</h3>
-              <p className="text-sm">Isi parameter di kiri lalu klik "Hitung Simulasi".</p>
-            </div>
+            <EmptyBlock icon="barChart" title="Belum ada simulasi" message={'Isi parameter di kiri lalu klik "Hitung Simulasi".'} />
           ) : (
             <div className="hpp-summary">
               <div className="hpp-row"><span>HPP Sekarang</span><b>{formatRupiah(hasil.hppSekarang)}</b></div>

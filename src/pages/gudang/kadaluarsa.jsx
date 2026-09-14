@@ -4,6 +4,7 @@ import { useAuth } from '../../components/AuthProvider'
 import AppLayout from '../../components/AppLayout'
 import { logAudit } from '../../utils/audit'
 import Icon from '../../components/Icons'
+import { StatCard, SkeletonStat, SkeletonRows, EmptyBlock } from '../../components/DashboardWidgets'
 
 const hariIni = () => new Date().toISOString().slice(0, 10)
 const tglID = (v) => v ? new Date(v).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'
@@ -142,10 +143,10 @@ export default function Kadaluarsa() {
       {error && <div className="alert alert-danger"> {error}</div>}
 
       <div className="metrics-grid">
-        <div className="metric-card"><div className="metric-label">Total Batch</div><div className="metric-value text-primary">{stat.total}</div></div>
-        <div className="metric-card"><div className="metric-label">Segera Kadaluarsa (≤2 hari)</div><div className="metric-value text-warning">{stat.kritis}</div></div>
-        <div className="metric-card"><div className="metric-label">Sudah Kadaluarsa</div><div className="metric-value text-danger">{stat.kadaluarsa}</div></div>
-        <div className="metric-card"><div className="metric-label">Total Sisa Qty</div><div className="metric-value">{stat.sisa}</div></div>
+        <StatCard label="Total Batch" value={stat.total} icon="box" tone="primary" />
+        <StatCard label="Segera Kadaluarsa (≤2 hari)" value={stat.kritis} icon="calendar" tone="warning" />
+        <StatCard label="Sudah Kadaluarsa" value={stat.kadaluarsa} icon="barChart" tone="danger" />
+        <StatCard label="Total Sisa Qty" value={stat.sisa} icon="box" />
       </div>
 
       {stat.kritis + stat.kadaluarsa > 0 && (
@@ -212,7 +213,7 @@ export default function Kadaluarsa() {
           </div>
         </div>
 
-        {loading ? <p className="text-muted text-center py-4">Memuat...</p>
+        {loading ? <div className="p-3"><SkeletonRows rows={4} /></div>
           : filtered.length === 0 ? (
             <div className="empty-state">
               <div className="nav-icon" style={{ fontSize: 40 }}>⏳</div>

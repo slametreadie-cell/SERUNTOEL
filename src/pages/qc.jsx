@@ -4,6 +4,7 @@ import { useAuth } from '../components/AuthProvider'
 import AppLayout from '../components/AppLayout'
 import { logAudit } from '../utils/audit'
 import Icon from '../components/Icons'
+import { StatCard, SkeletonStat, SkeletonRows, EmptyBlock } from '../components/DashboardWidgets'
 
 const hariIni = () => new Date().toISOString().slice(0, 10)
 const tglID = (v) => v ? new Date(v).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'
@@ -215,13 +216,9 @@ export default function QC() {
           <span className="text-sm text-muted">{data.length} catatan</span>
         </div>
 
-        {loading ? <p className="text-muted text-center py-4">Memuat...</p>
+        {loading ? <div className="p-3"><SkeletonRows rows={4} /></div>
           : data.length === 0 ? (
-            <div className="empty-state">
-              <div className="nav-icon" style={{ fontSize: 40 }}></div>
-              <h3>Belum ada pemeriksaan QC</h3>
-              <p className="text-sm">Lakukan pemeriksaan rutin untuk menjaga kualitas.</p>
-            </div>
+            <EmptyBlock icon="barChart" title="Belum ada pemeriksaan QC" message="Lakukan pemeriksaan rutin untuk menjaga kualitas." />
           ) : (
             <div className="table-wrap">
               <table className="table">

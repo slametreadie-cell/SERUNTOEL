@@ -4,6 +4,7 @@ import { useAuth } from '../../components/AuthProvider'
 import AppLayout from '../../components/AppLayout'
 import { logAudit } from '../../utils/audit'
 import Icon from '../../components/Icons'
+import { StatCard, SkeletonStat, SkeletonRows, EmptyBlock } from '../../components/DashboardWidgets'
 
 const formatRupiah = (v) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0)
@@ -97,10 +98,10 @@ export default function StokOpname() {
       {error && <div className="alert alert-danger"> {error}</div>}
 
       <div className="metrics-grid">
-        <div className="metric-card"><div className="metric-label">Total Item</div><div className="metric-value text-primary">{stat.total}</div></div>
-        <div className="metric-card"><div className="metric-label">Stok Kritis</div><div className="metric-value text-warning">{stat.kritis}</div></div>
-        <div className="metric-card"><div className="metric-label">Stok Habis</div><div className="metric-value text-danger">{stat.habis}</div></div>
-        <div className="metric-card"><div className="metric-label">Catatan Opname</div><div className="metric-value">{riwayat.length}</div></div>
+        <StatCard label="Total Item" value={stat.total} icon="box" tone="primary" />
+        <StatCard label="Stok Kritis" value={stat.kritis} icon="inbox" tone="warning" />
+        <StatCard label="Stok Habis" value={stat.habis} icon="inbox" tone="danger" />
+        <StatCard label="Catatan Opname" value={riwayat.length} icon="barChart" />
       </div>
 
       {/* Form koreksi */}
@@ -153,13 +154,9 @@ export default function StokOpname() {
             value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
 
-        {loading ? <p className="text-muted text-center py-4">Memuat...</p>
+        {loading ? <div className="p-3"><SkeletonRows rows={4} /></div>
           : filtered.length === 0 ? (
-            <div className="empty-state">
-              <div className="nav-icon" style={{ fontSize: 40 }}></div>
-              <h3>Belum ada {tab === 'bahan' ? 'bahan baku' : 'produk'}</h3>
-              <p className="text-sm">Tambahkan {tab === 'bahan' ? 'bahan di menu Inventory' : 'produk di menu Produk & HPP'}.</p>
-            </div>
+            <EmptyBlock icon="box" title="Belum ada {tab === 'bahan' ? 'bahan baku' : 'produk'}" message="Tambahkan {tab === 'bahan' ? 'bahan di menu Inventory' : 'produk di menu Produk & HPP'}." />
           ) : (
             <div className="table-wrap">
               <table className="table">
