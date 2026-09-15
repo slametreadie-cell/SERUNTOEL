@@ -4,6 +4,8 @@ import { supabase } from '../utils/supabaseClient'
 import { useAuth } from '../components/AuthProvider'
 import AppLayout from '../components/AppLayout'
 import { logAudit } from '../utils/audit'
+import { kirimWADanCatat } from '../utils/wa'
+import { teksStrukWA } from '../utils/strukWA'
 import { cetakStruk } from '../utils/struk'
 import {
   parseLoyaltyConfig, TIER_DEFAULT, TIER_EMOJI,
@@ -48,6 +50,7 @@ export default function POS() {
   const [nominalBayar, setNominalBayar] = useState('')
   const [customer, setCustomer] = useState('')
   const [channel, setChannel] = useState('offline')
+  const [ongkir, setOngkir] = useState('')
   const [saving, setSaving] = useState(false)
   const [sukses, setSukses] = useState(null)
 
@@ -173,6 +176,7 @@ export default function POS() {
     setCustomer('')
     setMetode('cash')
     setChannel('offline')
+    setOngkir('')
     setDiskonMode('none')
     setDiskonInput('')
     setVoucher(null)
@@ -214,9 +218,21 @@ export default function POS() {
   const poinDipakai = bolehTukar ? Math.min(Number(poinPakai) || 0, member.poin || 0, maxPoin) : 0
   const diskonPoin = nilaiPoin(poinDipakai, loyalty.nilai_poin)
 
-  const total = Math.max(0, setelahVoucher - diskonPoin)
+  const totalBarang = Math.max(0, setelahVoucher - diskonPoin)
+
+  // Ongkir untuk pembelian online (dari config biaya_kirim)
+  const biayaKirimDefault = Math.max(0, Number(toko.biaya_kirim) || 0)
+  const gratisMin = Math.max(0, Number(toko.biaya_kirim_gratis_min) || 0)
+  const ongkirOtomatis = channel === 'online'
+    ? (gratisMin > 0 && totalBarang >= gratisMin ? 0 : biayaKirimDefault)
+    : 0
+  const ongkirNilai = channel === 'online'
+    ? Math.max(0, Number(ongkir === '' ? ongkirOtomatis : ongkir) || 0)
+    : 0
+
+  const total = totalBarang + ongkirNilai
   const kembalian = Math.max(0, (Number(nominalBayar) || 0) - total)
-  const poinDidapat = loyalty.aktif && member ? hitungPoin(total, loyalty.poin_per_rupiah) : 0
+  const poinDidapat = loyalty.aktif && member ? hitungPoin(totalBarang, loyalty.poin_per_rupiah) : 0
 
   const diskonTierRp = diskonResellerRp + diskonPoin
 
@@ -312,7 +328,7 @@ export default function POS() {
           if (existing) {
             await supabase.from('customers').update({
               total_transaksi: (existing.total_transaksi || 0) + 1,
-              total_belanja: Number(existing.total_belanja || 0) + total,
+              total_belanja: Number(existing.total_belanja || 0) + totalBarang,
               last_order: new Date().toISOString(),
               ...(kontakCustomer && !existing.kontak ? { kontak: kontakCustomer } : {}),
             }).eq('id', existing.id)
@@ -320,7 +336,7 @@ export default function POS() {
           } else {
             const { data: baru } = await supabase.from('customers').insert({
               nama: namaCustomer, kontak: kontakCustomer, channel, total_transaksi: 1,
-              total_belanja: total, last_order: new Date().toISOString(),
+              total_belanja: totalBarang, last_order: new Date().toISOString(),
             }).select('id').single()
             customerId = baru?.id || null
           }
@@ -333,6 +349,7 @@ export default function POS() {
         .insert({
           id_transaksi: idTransaksi,
           total_bayar: total,
+          ongkir: ongkirNilai,
           channel,
           metode_pembayaran: metode,
           diskon: diskonManual + diskonTierRp,
@@ -379,7 +396,7 @@ export default function POS() {
             .from('loyalty_members').select('*').ilike('nama', namaCustomer).limit(1).maybeSingle()
           m = found
         }
-        const totalBelanjaBaru = Number(m?.total_belanja || 0) + total
+        const totalBelanjaBaru = Number(m?.total_belanja || 0) + totalBarang
         const poinBaru = Math.max(0, (m?.poin || 0) - poinDipakai) + poinDidapat
         const tierBaru = tierDari(totalBelanjaBaru, tiers)
 
@@ -406,7 +423,7 @@ export default function POS() {
         } else {
           const { data: nm } = await supabase.from('loyalty_members').insert({
             nama: namaCustomer, customer_id: customerId, poin: poinDidapat, tier: 'bronze',
-            total_transaksi: 1, total_belanja: total, last_visit: new Date().toISOString(),
+            total_transaksi: 1, total_belanja: totalBarang, last_visit: new Date().toISOString(),
           }).select().single()
           totalPoinBaru = poinDidapat
           if (nm && poinDidapat > 0) {
@@ -420,7 +437,7 @@ export default function POS() {
       logAudit({
         aksi: 'transaksi', user, sheetTarget: 'transactions',
         detail: {
-          id_transaksi: idTransaksi, total, metode, channel, items: cart.length,
+          id_transaksi: idTransaksi, total, ongkir: ongkirNilai, metode, channel, items: cart.length,
           customer: namaCustomer || null, voucher: voucher?.kode || null,
           diskon: diskonManual + diskonTierRp, diskon_voucher: diskonVoucher,
           poin_ditukar: poinDipakai, poin_didapat: poinDidapat,
@@ -428,7 +445,7 @@ export default function POS() {
       })
 
       setSukses({
-        id: idTransaksi, total, kembalian, metode, channel,
+        id: idTransaksi, total, ongkir: ongkirNilai, kembalian, metode, channel,
         items: itemsPayload, customer: namaCustomer,
         diskon: diskonManual + diskonTierRp, diskon_voucher: diskonVoucher,
         voucher_kode: voucher?.kode || null,
@@ -445,11 +462,25 @@ export default function POS() {
     }
   }
 
-  const cetak = (s) => cetakStruk({
+  const cetak = (s) => {
+  cetakStruk({
     ...s,
     nama_toko: toko.nama_toko, alamat_toko: toko.alamat_toko,
     telepon_toko: toko.telepon_toko, footer_struk: toko.footer_struk,
   })
+  // Kirim WA otomatis jika ada nomor pelanggan
+  if (s.customer && (telp || member?.kontak)) {
+    const nomor = telp || member?.kontak || ''
+    if (nomor) {
+      const pesan = teksStrukWA({
+        ...s,
+        nama_toko: toko.nama_toko, alamat_toko: toko.alamat_toko,
+        telepon_toko: toko.telepon_toko, footer_struk: toko.footer_struk,
+      })
+      kirimWADanCatat({ nomor, pesan, id_transaksi: s.id, customer_id: member?.customer_id || null, jenis: 'struk' })
+    }
+  }
+}
 
   return (
     <AppLayout
@@ -575,6 +606,24 @@ export default function POS() {
             </div>
           </div>
 
+          {/* Ongkir untuk pembelian online */}
+          {channel === 'online' && (
+            <div className="form-group">
+              <label className="form-label">Ongkir (Rp)</label>
+              <input className="form-control" type="number" min="0"
+                placeholder={String(ongkirOtomatis)}
+                value={ongkir} onChange={(e) => setOngkir(e.target.value)} />
+              {gratisMin > 0 && totalBarang >= gratisMin && biayaKirimDefault > 0 && (
+                <div className="text-xs text-success mt-1">GRATIS ONGKIR! Belanja sudah {formatRupiah(gratisMin)}.</div>
+              )}
+              {gratisMin > 0 && totalBarang < gratisMin && biayaKirimDefault > 0 && (
+                <div className="text-xs text-muted mt-1">
+                  Gratis ongkir mulai {formatRupiah(gratisMin)}. Sekarang {formatRupiah(totalBarang)}.
+                </div>
+              )}
+            </div>
+          )}
+
           {cart.length === 0 ? (
             <EmptyBlock icon="cart" title="Keranjang kosong" message="Klik produk di kiri untuk menambahkan." />
           ) : (
@@ -688,6 +737,12 @@ export default function POS() {
             {diskonManual > 0 && <div className="baw-row"><span>Diskon</span><b className="text-danger">−{formatRupiah(diskonManual)}</b></div>}
             {diskonVoucher > 0 && <div className="baw-row"><span>Voucher {voucher?.kode}</span><b className="text-danger">−{formatRupiah(diskonVoucher)}</b></div>}
             {diskonPoin > 0 && <div className="baw-row"><span>Tukar {poinDipakai} poin</span><b className="text-danger">−{formatRupiah(diskonPoin)}</b></div>}
+          {ongkirNilai > 0 && (
+            <div className="baw-row"><span>Ongkir</span><b>{formatRupiah(ongkirNilai)}</b></div>
+          )}
+          {ongkirNilai === 0 && channel === 'online' && biayaKirimDefault > 0 && (
+            <div className="baw-row"><span>Ongkir</span><b className="text-success">GRATIS</b></div>
+          )}
             <div className="baw-row total"><span>TOTAL</span><b className="text-primary">{formatRupiah(total)}</b></div>
           </div>
 

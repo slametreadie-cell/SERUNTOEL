@@ -3,6 +3,8 @@ import Link from 'next/link'
 import { supabase } from '../../utils/supabaseClient'
 import { useAuth } from '../../components/AuthProvider'
 import AppLayout from '../../components/AppLayout'
+import { kirimWADanCatat } from '../../utils/wa'
+import { teksStrukWA } from '../../utils/strukWA'
 import { cetakStruk } from '../../utils/struk'
 import Icon from '../../components/Icons'
 import { StatCard, SkeletonStat, SkeletonRows, EmptyBlock } from '../../components/DashboardWidgets'
@@ -74,11 +76,29 @@ export default function Kasir() {
 
   useEffect(() => { fetchData() }, [fetchData])
 
-  const cetak = (t) => cetakStruk({
+  const cetak = (t) => {
+  cetakStruk({
     ...t,
     nama_toko: toko.nama_toko, alamat_toko: toko.alamat_toko,
     telepon_toko: toko.telepon_toko, footer_struk: toko.footer_struk,
   })
+}
+
+const kirimWA = async (t) => {
+  if (!t.customer_id || !kontakMap[t.customer_id]) {
+    alert('Pelanggan ini tidak punya nomor WA — tambahkan di halaman Pelanggan dulu.')
+    return
+  }
+  const nomor = kontakMap[t.customer_id]
+  const pesan = teksStrukWA({
+    ...t,
+    nama_toko: toko.nama_toko, alamat_toko: toko.alamat_toko,
+    telepon_toko: toko.telepon_toko, footer_struk: toko.footer_struk,
+  })
+  const r = await kirimWADanCatat({ nomor, pesan, id_transaksi: t.id_transaksi, customer_id: t.customer_id, jenis: 'struk' })
+  if (r.ok) alert('Struk terkirim ke WA')
+  else alert('Gagal kirim WA: ' + (r.error || 'Tidak diketahui'))
+}
 
   const filtered = transaksi.filter((t) => {
     const okM = !metodeFilter || t.metode_pembayaran === metodeFilter
@@ -191,6 +211,9 @@ export default function Kasir() {
                           <td className="text-right font-bold text-primary">{formatRupiah(t.total_bayar)}</td>
                           <td className="text-right">
                             <button className="btn btn-sm btn-outline" onClick={() => cetak(t)}><Icon name="receipt" size={13} /></button>
+                            {t.customer_id && kontakMap[t.customer_id] && (
+                              <button className="btn btn-sm btn-outline ml-1" onClick={() => kirimWA(t)}><Icon name="send" size={13} /></button>
+                            )}
                           </td>
                         </tr>
                       )

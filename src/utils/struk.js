@@ -85,6 +85,7 @@ export function cetakStruk(trx, opts = {}) {
   <table>
     ${diskonTier > 0 ? `<tr><td>Diskon</td><td class="right">-${rp(diskonTier)}</td></tr>` : ''}
     ${diskonVoucher > 0 ? `<tr><td>Voucher ${escapeHtml(t.voucher_kode || '')}</td><td class="right">-${rp(diskonVoucher)}</td></tr>` : ''}
+    ${Number(t.ongkir || 0) > 0 ? `<tr><td>Ongkir</td><td class="right">${rp(t.ongkir)}</td></tr>` : ''}
     <tr class="tot"><td>TOTAL</td><td class="right">${rp(total)}</td></tr>
     <tr><td>${METODE_LABEL[t.metode_pembayaran] || 'Bayar'}</td><td class="right">${rp(t.nominal_bayar || total)}</td></tr>
     ${Number(t.kembalian) > 0 ? `<tr><td>Kembalian</td><td class="right">${rp(t.kembalian)}</td></tr>` : ''}
